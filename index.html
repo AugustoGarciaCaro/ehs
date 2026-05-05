@@ -223,6 +223,47 @@ if(!UI.en.totalAnswers) UI.en.totalAnswers = "Answers";
 
 let currentLang="es",currentQuestions=[],currentIndex=0,score=0,answered=false,participantName="",selectedCommitment="",criticalErrors=0,ritErrors=[],timerInterval=null,startTime=null,elapsedSeconds=0,tournamentMode=false,tournamentTurn=0,tournamentScores=[0,0],tournamentNames=["Equipo 1","Equipo 2"],genericMode="",genericIndex=0;
 const questionCount=5;
+
+const API_URL = "https://script.google.com/macros/s/AKfycbwUYhD-_UMlLBxICtjBPB88eW1X-R8duFz_SC4NggHfLimFqhfeWydj7XiVQeR4UVtl/exec";
+let remoteIndividual = [];
+let remoteTeams = [];
+let remoteAnswers = [];
+let useRemoteData = true;
+
+function postToSheet(payload){
+  return fetch(API_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  }).catch(err => console.warn("Sheet post failed", err));
+}
+
+async function fetchSheet(type){
+  try {
+    const res = await fetch(`${API_URL}?type=${type}&t=${Date.now()}`);
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    return await res.json();
+  } catch(err) {
+    console.warn("Sheet read failed", type, err);
+    return [];
+  }
+}
+
+async function refreshRemoteData(){
+  const [individual, torneo, respuestas] = await Promise.all([
+    fetchSheet("individual"),
+    fetchSheet("torneo"),
+    fetchSheet("respuestas")
+  ]);
+  remoteIndividual = Array.isArray(individual) ? individual : [];
+  remoteTeams = Array.isArray(torneo) ? torneo : [];
+  remoteAnswers = Array.isArray(respuestas) ? respuestas : [];
+  renderTopThree();
+  if(!document.getElementById("leaderboardScreen").classList.contains("hidden")) renderLeaderboard();
+  if(!document.getElementById("hrScreen").classList.contains("hidden")) renderHRBoard();
+}
+
 function t(k){return (UI[currentLang]&&UI[currentLang][k]) || (FALLBACK_UI[currentLang]&&FALLBACK_UI[currentLang][k]) || (HR_FALLBACK_UI[currentLang]&&HR_FALLBACK_UI[currentLang][k]) || k}
 function local(q,f){return q[currentLang][f]}
 function qRit(q){return q[currentLang].rit}
@@ -234,7 +275,9 @@ function sevLabel(s){return currentLang==="en"?(s==="Crítico"?"Critical":s==="A
 function getVisual(k){let p=VISUAL_POOLS[k]||[VISUALS[k]];return p[Math.floor(Math.random()*p.length)]}
 function startTimer(){stopTimer();startTime=Date.now();elapsedSeconds=0;document.getElementById("timerText").textContent="00:00";timerInterval=setInterval(()=>{elapsedSeconds=Math.floor((Date.now()-startTime)/1000);document.getElementById("timerText").textContent=formatTime(elapsedSeconds)},1000)}
 function stopTimer(){if(timerInterval)clearInterval(timerInterval);timerInterval=null;if(startTime)elapsedSeconds=Math.floor((Date.now()-startTime)/1000)}
-function setLanguage(lang){currentLang=lang;applyLanguage();if(currentQuestions.length&&!document.getElementById("scenarioScreen").classList.contains("hidden"))renderQuestion()}
+function setLanguage(lang){currentLang=lang;applyLanguage();
+refreshRemoteData();
+setInterval(refreshRemoteData, 15000);if(currentQuestions.length&&!document.getElementById("scenarioScreen").classList.contains("hidden"))renderQuestion()}
 
 function applyLanguage(){
   document.documentElement.lang=currentLang;
@@ -431,14 +474,86 @@ function genericPrev(){let total=genericMode==="rule"?5:t("contributions").lengt
 function genericNext(){let total=genericMode==="rule"?5:t("contributions").length;if(genericIndex>=total-1){closeGeneric();return}genericIndex++;genericMode==="rule"?openRule(genericIndex):openContribution(genericIndex)}
 function closeGeneric(){document.getElementById("genericOverlay").style.display="none"}
 function showAllChallenges(){document.getElementById("genericBadge").textContent="📜";document.getElementById("genericTitle").textContent=t("challengesTitle");document.getElementById("genericLead").textContent=t("challengesLead");document.getElementById("genericContent").innerHTML=QUESTION_BANK.map((q,i)=>`<div class="detail-item"><strong>#${i+1}</strong>${local(q,"title")} <span class="severity">${difficulty(q)}</span></div>`).join("");document.getElementById("genericNav").innerHTML="";document.getElementById("genericOverlay").style.display="flex"}
-function getScores(){try{return JSON.parse(localStorage.getItem("westernRitScores")||"[]")}catch(e){return[]}}
-function getTeamScores(){try{return JSON.parse(localStorage.getItem("westernTeamScores")||"[]")}catch(e){return[]}}
-function getWrongLogs(){try{return JSON.parse(localStorage.getItem("westernWrongLogs")||"[]")}catch(e){return[]}}
-function getAnswerLogs(){try{return JSON.parse(localStorage.getItem("westernAnswerLogs")||"[]")}catch(e){return[]}}
-function saveScore(e){let s=getScores();s.push(e);s.sort((a,b)=>b.score-a.score||(a.seconds||999999)-(b.seconds||999999));localStorage.setItem("westernRitScores",JSON.stringify(s.slice(0,100)))}
-function saveTeamMatch(e){let s=getTeamScores();s.push(e);localStorage.setItem("westernTeamScores",JSON.stringify(s.slice(0,100)))}
-function logWrong(q){let s=getWrongLogs();s.push({category:q.category,rule:q.rule,severity:q.severity,title:q.es.title,date:new Date().toLocaleString("es-MX")});localStorage.setItem("westernWrongLogs",JSON.stringify(s.slice(-500)))}
-function logAnswer(q,ok){let s=getAnswerLogs();s.push({category:q.category,correct:!!ok,date:new Date().toLocaleString("es-MX")});localStorage.setItem("westernAnswerLogs",JSON.stringify(s.slice(-1000)))}
+
+function normalizeIndividualRows(rows){
+  return rows.map(r=>({
+    name:r.nombre || r.name || "",
+    score:Number(r.score || 0),
+    max:Number(r.max || 5),
+    percent:Number(r.porcentaje || r.percent || 0),
+    time:r.tiempo || r.time || "",
+    badge:r.rango || r.badge || "",
+    criticalErrors:Number(r.erroresCriticos || r.criticalErrors || 0),
+    commitment:r.compromiso || r.commitment || "",
+    date:r.fecha || r.date || ""
+  })).filter(x=>x.name);
+}
+function normalizeTeamRows(rows){
+  return rows.map(r=>({
+    team1:r.equipo1 || r.team1 || "",
+    team2:r.equipo2 || r.team2 || "",
+    team1Score:Number(r.score1 || r.team1Score || 0),
+    team2Score:Number(r.score2 || r.team2Score || 0),
+    winner:r.ganador || r.winner || "",
+    date:r.fecha || r.date || ""
+  })).filter(x=>x.team1 || x.team2);
+}
+function normalizeAnswerRows(rows){
+  return rows.map(r=>({
+    category:r.categoria || r.category || "",
+    rule:r.regla || r.rule || "",
+    severity:r.severidad || r.severity || "",
+    correct:String(r.correcta ?? r.correct ?? "").toLowerCase()==="true" || r.correcta===true || r.correct===true,
+    date:r.fecha || r.date || ""
+  })).filter(x=>x.category);
+}
+
+function getScores(){
+  if(useRemoteData && remoteIndividual.length) return normalizeIndividualRows(remoteIndividual);
+  try{return JSON.parse(localStorage.getItem("westernRitScores")||"[]")}catch(e){return[]}
+}
+function getTeamScores(){
+  if(useRemoteData && remoteTeams.length) return normalizeTeamRows(remoteTeams);
+  try{return JSON.parse(localStorage.getItem("westernTeamScores")||"[]")}catch(e){return[]}
+}
+function getWrongLogs(){
+  try{return JSON.parse(localStorage.getItem("westernWrongLogs")||"[]")}catch(e){return[]}
+}
+function getAnswerLogs(){
+  if(useRemoteData && remoteAnswers.length) return normalizeAnswerRows(remoteAnswers);
+  try{return JSON.parse(localStorage.getItem("westernAnswerLogs")||"[]")}catch(e){return[]}
+}
+
+function saveScore(e){
+  let s;
+  try{s=JSON.parse(localStorage.getItem("westernRitScores")||"[]")}catch(err){s=[]}
+  s.push(e);
+  s.sort((a,b)=>b.score-a.score||(a.seconds||999999)-(b.seconds||999999));
+  localStorage.setItem("westernRitScores",JSON.stringify(s.slice(0,100)));
+  postToSheet({type:"individual",...e});
+  setTimeout(refreshRemoteData,1200);
+}
+function saveTeamMatch(e){
+  let s;
+  try{s=JSON.parse(localStorage.getItem("westernTeamScores")||"[]")}catch(err){s=[]}
+  s.push(e);
+  localStorage.setItem("westernTeamScores",JSON.stringify(s.slice(0,100)));
+  postToSheet({type:"torneo",...e});
+  setTimeout(refreshRemoteData,1200);
+}
+function logWrong(q){
+  let s=getWrongLogs();
+  s.push({category:q.category,rule:q.rule,severity:q.severity,title:q.es.title,date:new Date().toLocaleString("es-MX")});
+  localStorage.setItem("westernWrongLogs",JSON.stringify(s.slice(-500)));
+}
+function logAnswer(q,ok){
+  let s;
+  try{s=JSON.parse(localStorage.getItem("westernAnswerLogs")||"[]")}catch(err){s=[]}
+  const entry={category:q.category,rule:q.rule,severity:q.severity,correct:!!ok,date:new Date().toLocaleString("es-MX")};
+  s.push(entry);
+  localStorage.setItem("westernAnswerLogs",JSON.stringify(s.slice(-1000)));
+  postToSheet({type:"respuesta",category:q.category,rule:q.rule,severity:q.severity,correct:!!ok});
+}
 function renderTopThree(){let s=getScores().slice(0,3);document.getElementById("homeTopThree").innerHTML=s.length?s.map((x,i)=>`<div class="top-three-item"><span>${i+1}. ${x.name}</span><span>${x.score}/${x.max} · ${x.time}</span></div>`).join(""):`<div class="top-three-item"><span>${t("noTop")}</span><span>🤠</span></div>`}
 function renderLeaderboard(){let s=getScores(),body=document.getElementById("leaderboardBody");body.innerHTML=s.length?s.map((x,i)=>`<tr><td>${i+1}</td><td>${x.name}</td><td>${x.score}/${x.max}</td><td>${x.time}</td><td>${x.badge}</td><td>${x.criticalErrors||0}</td><td>${x.commitment||""}</td><td>${x.date}</td></tr>`).join(""):`<tr><td colspan="8" class="center">${t("noRegistered")}</td></tr>`;let ts=getTeamScores(),tb=document.getElementById("teamLeaderboardBody");tb.innerHTML=ts.length?ts.map((x,i)=>`<tr><td>${i+1}</td><td>${x.team1} vs ${x.team2}</td><td>${x.team1Score} - ${x.team2Score}</td><td><span class="winner-badge">${x.winner}</span></td><td>${x.date}</td></tr>`).join(""):`<tr><td colspan="5" class="center">${t("noRegistered")}</td></tr>`}
 function renderHRBoard(){let at=document.getElementById("accuracyTitle");if(at)at.textContent=t("accuracyTitle");let ot=document.getElementById("opportunityTitle");if(ot)ot.textContent=t("opportunityTitle");let logs=getAnswerLogs(),agg={};logs.forEach(x=>{let k=x.category;agg[k]=agg[k]||{total:0,correct:0};agg[k].total++;if(x.correct)agg[k].correct++});let arr=Object.entries(agg).map(([topic,v])=>{let acc=v.total?Math.round(v.correct/v.total*100):0;return{topic,total:v.total,correct:v.correct,accuracy:acc,opportunity:100-acc}});let render=(data,type)=>data.length?data.map(x=>{let val=type==="accuracy"?x.accuracy:x.opportunity;return`<div class="hr-chart-row"><div class="hr-chart-label">${x.topic}<br><small>${t("totalAnswers")}: ${x.total}</small></div><div class="hr-bar-track"><div class="hr-bar ${type==="opportunity"?"opportunity":""}" style="width:${val}%"></div></div><div class="hr-chart-value">${val}%<br><small>${x.correct}/${x.total}</small></div></div>`}).join(""):`<div class="detail-item center">${t("noRegistered")}</div>`;let a=[...arr].sort((x,y)=>y.accuracy-x.accuracy||y.total-x.total),o=[...arr].sort((x,y)=>y.opportunity-x.opportunity||y.total-x.total);let ac=document.getElementById("accuracyChart"),op=document.getElementById("opportunityChart");if(ac)ac.innerHTML=render(a,"accuracy");if(op)op.innerHTML=render(o,"opportunity")}
