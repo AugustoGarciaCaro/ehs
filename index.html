@@ -593,6 +593,7 @@ function refreshPlayModalTexts(){
 }
 
 
+
 function openRecognitionModal(){
   const modal=document.getElementById("recognitionModal");
   const err=document.getElementById("recognitionError");
@@ -601,6 +602,7 @@ function openRecognitionModal(){
   if(status) status.style.display="none";
   if(modal) modal.style.display="flex";
   applyLanguage();
+
   const nameInput=document.getElementById("recognitionNameInput");
   const homeName=document.getElementById("participantName");
   if(nameInput && homeName && homeName.value.trim() && !nameInput.value.trim()){
@@ -615,7 +617,6 @@ function closeRecognitionModal(){
 function isValidEmail(email){
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
 }
-
 function createRecognitionPDF(name){
   const jsPDF = window.jspdf && window.jspdf.jsPDF;
   if(!jsPDF){
@@ -627,23 +628,29 @@ function createRecognitionPDF(name){
   const w = doc.internal.pageSize.getWidth();
   const h = doc.internal.pageSize.getHeight();
 
-  // Use the uploaded recognition artwork as full-page background
-  doc.addImage(CERTIFICATE_TEMPLATE_IMAGE, "PNG", 0, 0, w, h);
+  if(typeof CERTIFICATE_TEMPLATE_IMAGE !== "undefined"){
+    doc.addImage(CERTIFICATE_TEMPLATE_IMAGE, "PNG", 0, 0, w, h);
+  } else {
+    doc.setFillColor(255,247,237);
+    doc.rect(0,0,w,h,"F");
+  }
 
-  // Participant name over the blank line
   const displayName = String(name || "").trim().toUpperCase();
 
+  // Ajuste dinámico del tamaño del nombre para nombres largos
+  let fontSize = 34;
+
+  if(displayName.length > 24) fontSize = 30;
+  if(displayName.length > 32) fontSize = 26;
+  if(displayName.length > 40) fontSize = 22;
+  if(displayName.length > 50) fontSize = 18;
+
   doc.setFont("times", "bold");
-  doc.setFontSize(displayName.length > 32 ? 26 : 34);
+  doc.setFontSize(fontSize);
   doc.setTextColor(59, 29, 11);
 
-  // Soft parchment highlight behind name for readability
-  doc.setFillColor(255, 247, 237);
-  doc.setDrawColor(124, 45, 18);
-  doc.setLineWidth(0.8);
-  doc.roundedRect(190, 333, w - 380, 46, 10, 10, "FD");
-
-  doc.text(displayName, w / 2, 364, { align: "center" });
+  // Nombre centrado directamente sobre el diseño original
+  doc.text(displayName, w / 2, 364, { align: "center", maxWidth: w - 180 });
 
   return doc;
 }
@@ -689,13 +696,11 @@ async function generateRecognitionAndEmail(){
     return;
   }
 
-  // Send as attachment through Apps Script
   const dataUri = doc.output("datauristring");
   const pdfBase64 = dataUri.split(",")[1];
 
   await sendRecognitionByEmail(name, email, pdfBase64);
 
-  // Local copy as backup
   downloadRecognitionPDF(doc, name);
 
   if(status){
@@ -704,6 +709,7 @@ async function generateRecognitionAndEmail(){
   }
   if(btn) btn.disabled = false;
 }
+
 function openPlayModal(){
   const modal=document.getElementById("playModal");
   const step=document.getElementById("modalNameStep");
