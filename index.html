@@ -252,9 +252,12 @@ function fetchSheet(type){
     const callbackName = "jsonpCallback_" + type + "_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
     const script = document.createElement("script");
 
-    window[callbackName] = function(data){
+    window[callbackName] = function(response){
       try {
-        resolve(Array.isArray(data) ? data : []);
+        let data = response;
+        if(response && response.data && Array.isArray(response.data)) data = response.data;
+        if(!Array.isArray(data)) data = [];
+        resolve(data);
       } finally {
         delete window[callbackName];
         if(script && script.parentNode) script.parentNode.removeChild(script);
@@ -279,12 +282,27 @@ async function refreshRemoteData(){
     fetchSheet("torneo"),
     fetchSheet("respuestas")
   ]);
+
   remoteIndividual = Array.isArray(individual) ? individual : [];
   remoteTeams = Array.isArray(torneo) ? torneo : [];
   remoteAnswers = Array.isArray(respuestas) ? respuestas : [];
+
+  console.log("Google Sheets loaded:", {
+    individual: remoteIndividual.length,
+    torneo: remoteTeams.length,
+    respuestas: remoteAnswers.length
+  });
+
   renderTopThree();
   if(!document.getElementById("leaderboardScreen").classList.contains("hidden")) renderLeaderboard();
   if(!document.getElementById("hrScreen").classList.contains("hidden")) renderHRBoard();
+
+  const stamp = new Date().toLocaleTimeString("es-MX");
+  const status = document.getElementById("refreshStatus");
+  const hrStatus = document.getElementById("refreshHRStatus");
+  const msg = `✅ ${t("boardUpdated") || "Tablero actualizado"} · ${stamp} · Individual: ${remoteIndividual.length} · Torneo: ${remoteTeams.length} · Respuestas: ${remoteAnswers.length}`;
+  if(status) status.textContent = msg;
+  if(hrStatus) hrStatus.textContent = msg;
 }
 
 function t(k){return (UI[currentLang]&&UI[currentLang][k]) || (FALLBACK_UI[currentLang]&&FALLBACK_UI[currentLang][k]) || (HR_FALLBACK_UI[currentLang]&&HR_FALLBACK_UI[currentLang][k]) || k}
@@ -406,8 +424,8 @@ function applyLanguage(){
   setText("ritCloseBtn","close");
   setText("ritFooterText","ritFooter");
   setText("genericClose","close");
-  setText("refreshBoardBtn","refreshBoard");
-  setText("refreshHRBtn","refreshBoard");
+  setText("refreshBoardBtn","refreshBoard"); const rb=document.getElementById("refreshBoardBtn"); if(rb && !rb.textContent.includes("🔄")) rb.textContent="🔄 "+rb.textContent;
+  setText("refreshHRBtn","refreshBoard"); const rhb=document.getElementById("refreshHRBtn"); if(rhb && !rhb.textContent.includes("🔄")) rhb.textContent="🔄 "+rhb.textContent;
   setText("playModeTitle","playModeTitle");
   setText("playModeLead","playModeLead");
   setText("playIndividualBtn","playIndividual");
@@ -521,39 +539,51 @@ async function manualRefreshBoard(){
   if(hrStatus) hrStatus.textContent = "✅ " + t("boardUpdated") + " · " + stamp;
 }
 
+
+function getCell(row, names){
+  if(!row) return "";
+  const keys = Object.keys(row);
+  for(const target of names){
+    const match = keys.find(k => String(k).trim().toLowerCase() === String(target).trim().toLowerCase());
+    if(match !== undefined) return row[match];
+  }
+  return "";
+}
 function normalizeIndividualRows(rows){
   return rows.map(r=>({
-    name:r.nombre || r.name || "",
-    score:Number(r.score || 0),
-    max:Number(r.max || 5),
-    percent:Number(r.porcentaje || r.percent || 0),
-    time:r.tiempo || r.time || "",
-    badge:r.rango || r.badge || "",
-    criticalErrors:Number(r.erroresCriticos || r.criticalErrors || 0),
-    commitment:r.compromiso || r.commitment || "",
-    date:r.fecha || r.date || ""
-  })).filter(x=>x.name);
+    name:getCell(r,["nombre","name","participante","vaquero"]),
+    score:Number(getCell(r,["score","puntaje"]) || 0),
+    max:Number(getCell(r,["max","máximo","maximo"]) || 5),
+    percent:Number(getCell(r,["porcentaje","percent","%"]) || 0),
+    time:getCell(r,["tiempo","time"]),
+    badge:getCell(r,["rango","badge"]),
+    criticalErrors:Number(getCell(r,["erroresCriticos","errores críticos","criticalErrors","critical errors"]) || 0),
+    commitment:getCell(r,["compromiso","commitment"]),
+    date:getCell(r,["fecha","date"])
+  })).filter(x=>x.name || x.score);
 }
 function normalizeTeamRows(rows){
   return rows.map(r=>({
-    team1:r.equipo1 || r.team1 || "",
-    team2:r.equipo2 || r.team2 || "",
-    team1Score:Number(r.score1 || r.team1Score || 0),
-    team2Score:Number(r.score2 || r.team2Score || 0),
-    winner:r.ganador || r.winner || "",
-    date:r.fecha || r.date || ""
+    team1:getCell(r,["equipo1","team1","equipo 1"]),
+    team2:getCell(r,["equipo2","team2","equipo 2"]),
+    team1Score:Number(getCell(r,["score1","team1Score","puntaje1","score equipo 1"]) || 0),
+    team2Score:Number(getCell(r,["score2","team2Score","puntaje2","score equipo 2"]) || 0),
+    winner:getCell(r,["ganador","winner"]),
+    date:getCell(r,["fecha","date"])
   })).filter(x=>x.team1 || x.team2);
 }
 function normalizeAnswerRows(rows){
-  return rows.map(r=>({
-    category:r.categoria || r.category || "",
-    rule:r.regla || r.rule || "",
-    severity:r.severidad || r.severity || "",
-    correct:String(r.correcta ?? r.correct ?? "").toLowerCase()==="true" || r.correcta===true || r.correct===true,
-    date:r.fecha || r.date || ""
-  })).filter(x=>x.category);
+  return rows.map(r=>{
+    const rawCorrect = getCell(r,["correcta","correct","correcto"]);
+    return {
+      category:getCell(r,["categoria","categoría","category"]),
+      rule:getCell(r,["regla","rule"]),
+      severity:getCell(r,["severidad","severity"]),
+      correct:String(rawCorrect).trim().toLowerCase()==="true" || rawCorrect===true || String(rawCorrect).trim().toLowerCase()==="verdadero" || String(rawCorrect).trim()==="1",
+      date:getCell(r,["fecha","date"])
+    };
+  }).filter(x=>x.category);
 }
-
 function getScores(){
   if(useRemoteData && remoteIndividual.length) return normalizeIndividualRows(remoteIndividual);
   try{return JSON.parse(localStorage.getItem("westernRitScores")||"[]")}catch(e){return[]}
