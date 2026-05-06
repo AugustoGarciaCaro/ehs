@@ -233,7 +233,7 @@ let currentLang="es",currentQuestions=[],currentIndex=0,score=0,answered=false,p
 const questionCount=5;
 
 const API_URL = "https://script.google.com/macros/s/AKfycbwUYhD-_UMlLBxICtjBPB88eW1X-R8duFz_SC4NggHfLimFqhfeWydj7XiVQeR4UVtl/exec";
-let remoteLoaded = false;
+const GOOGLE_SHEET_ID = "1TIT_32EnO8rP3jFUhyPnpfQ3hhdONvQhTjQW7UyB8Ew";
 let remoteIndividual = [];
 let remoteTeams = [];
 let remoteAnswers = [];
@@ -250,27 +250,40 @@ function postToSheet(payload){
 
 function fetchSheet(type){
   return new Promise((resolve) => {
-    const callbackName = "jsonpCallback_" + type + "_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    const sheetMap = {
+      individual: "Individual",
+      torneo: "Torneo",
+      respuestas: "Respuestas"
+    };
+    const sheetName = sheetMap[type] || type;
+    const callbackName = "gvizCallback_" + type + "_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
     const script = document.createElement("script");
 
     window[callbackName] = function(response){
       try {
-        let data = response;
-        if(response && Array.isArray(response.data)) data = response.data;
-        if(response && Array.isArray(response.rows)) data = response.rows;
-
-        if(Array.isArray(data)){
-          resolve(data);
-        } else if(data && typeof data === "object") {
-          const numericKeys = Object.keys(data).filter(k => !isNaN(Number(k))).sort((a,b)=>Number(a)-Number(b));
-          if(numericKeys.length){
-            resolve(numericKeys.map(k => data[k]));
-          } else {
-            resolve([data]);
-          }
-        } else {
+        const table = response && response.table ? response.table : null;
+        if(!table || !table.cols || !table.rows){
           resolve([]);
+          return;
         }
+
+        const headers = table.cols.map((c, i) => {
+          return String(c.label || c.id || ("col" + i)).trim();
+        });
+
+        const rows = table.rows.map(r => {
+          const item = {};
+          headers.forEach((h, i) => {
+            const cell = r.c && r.c[i] ? r.c[i] : null;
+            item[h] = cell ? (cell.f !== undefined ? cell.f : cell.v) : "";
+          });
+          return item;
+        }).filter(row => Object.values(row).some(v => String(v || "").trim() !== ""));
+
+        resolve(rows);
+      } catch(err) {
+        console.warn("GViz parse failed", type, err);
+        resolve([]);
       } finally {
         delete window[callbackName];
         if(script && script.parentNode) script.parentNode.removeChild(script);
@@ -278,13 +291,13 @@ function fetchSheet(type){
     };
 
     script.onerror = function(){
-      console.warn("JSONP read failed", type);
+      console.warn("GViz read failed", type);
       delete window[callbackName];
       if(script && script.parentNode) script.parentNode.removeChild(script);
       resolve([]);
     };
 
-    script.src = `${API_URL}?type=${encodeURIComponent(type)}&callback=${callbackName}&t=${Date.now()}`;
+    script.src = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=responseHandler:${callbackName}&t=${Date.now()}`;
     document.body.appendChild(script);
   });
 }
@@ -299,15 +312,13 @@ async function refreshRemoteData(){
   remoteIndividual = Array.isArray(individual) ? individual : [];
   remoteTeams = Array.isArray(torneo) ? torneo : [];
   remoteAnswers = Array.isArray(respuestas) ? respuestas : [];
-  remoteLoaded = true;
 
-  console.log("Google Sheets loaded FULL:", {
+  console.log("Google Sheet GViz loaded:", {
     individual: remoteIndividual.length,
     torneo: remoteTeams.length,
     respuestas: remoteAnswers.length,
-    remoteIndividual,
-    remoteTeams,
-    remoteAnswers
+    individualRows: remoteIndividual,
+    teamRows: remoteTeams
   });
 
   renderTopThree();
@@ -577,33 +588,6 @@ function getCell(row, names){
     }
   }
 
-  if(Array.isArray(row)){
-    const indexMap = {
-      fecha:0, date:0,
-      nombre:1, name:1, participante:1, vaquero:1,
-      score:2, puntaje:2,
-      max:3,
-      porcentaje:4, percent:4,
-      tiempo:5, time:5,
-      rango:6, badge:6,
-      errorescriticos:7, criticalerrors:7,
-      compromiso:8, commitment:8,
-      equipo1:1, team1:1,
-      equipo2:2, team2:2,
-      score1:3, team1score:3, puntaje1:3,
-      score2:4, team2score:4, puntaje2:4,
-      ganador:5, winner:5,
-      categoria:1, category:1,
-      regla:2, rule:2,
-      severidad:3, severity:3,
-      correcta:4, correct:4
-    };
-    for(const target of names){
-      const clean = normalizeKey(target);
-      if(indexMap[clean] !== undefined) return row[indexMap[clean]];
-    }
-  }
-
   return "";
 }
 function normalizeIndividualRows(rows){
@@ -690,10 +674,12 @@ function logAnswer(q,ok){
 function renderTopThree(){let s=getScores().slice(0,3);document.getElementById("homeTopThree").innerHTML=s.length?s.map((x,i)=>`<div class="top-three-item"><span>${i+1}. ${x.name}</span><span>${x.score}/${x.max} · ${x.time}</span></div>`).join(""):`<div class="top-three-item"><span>${t("noTop")}</span><span>🤠</span></div>`}
 function renderLeaderboard(){
   let s = getScores();
-  s = [...s].sort((a,b)=>{
+
+  // Sort all records from Google Sheets or localStorage
+  s = [...s].sort((a,b) => {
     const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
     if(scoreDiff !== 0) return scoreDiff;
-    return String(a.time || "").localeCompare(String(b.time || ""));
+    return Number(a.seconds || 999999) - Number(b.seconds || 999999);
   });
 
   const body = document.getElementById("leaderboardBody");
