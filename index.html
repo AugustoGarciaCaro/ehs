@@ -255,9 +255,22 @@ function fetchSheet(type){
     window[callbackName] = function(response){
       try {
         let data = response;
-        if(response && response.data && Array.isArray(response.data)) data = response.data;
-        if(!Array.isArray(data)) data = [];
-        resolve(data);
+
+        if(response && response.data) data = response.data;
+        if(response && response.rows) data = response.rows;
+
+        if(Array.isArray(data)){
+          resolve(data);
+        } else if(data && typeof data === "object") {
+          const numericKeys = Object.keys(data).filter(k => !isNaN(Number(k))).sort((a,b)=>Number(a)-Number(b));
+          if(numericKeys.length){
+            resolve(numericKeys.map(k => data[k]));
+          } else {
+            resolve([data]);
+          }
+        } else {
+          resolve([]);
+        }
       } finally {
         delete window[callbackName];
         if(script && script.parentNode) script.parentNode.removeChild(script);
@@ -542,11 +555,43 @@ async function manualRefreshBoard(){
 
 function getCell(row, names){
   if(!row) return "";
-  const keys = Object.keys(row);
-  for(const target of names){
-    const match = keys.find(k => String(k).trim().toLowerCase() === String(target).trim().toLowerCase());
-    if(match !== undefined) return row[match];
+
+  // Object rows from Apps Script: {fecha:..., nombre:...}
+  if(!Array.isArray(row) && typeof row === "object"){
+    const keys = Object.keys(row);
+    for(const target of names){
+      const match = keys.find(k => String(k).trim().toLowerCase() === String(target).trim().toLowerCase());
+      if(match !== undefined) return row[match];
+    }
   }
+
+  // Array rows fallback based on expected column positions
+  if(Array.isArray(row)){
+    const indexMap = {
+      fecha:0, date:0,
+      nombre:1, name:1, participante:1, vaquero:1,
+      score:2, puntaje:2,
+      max:3, porcentaje:4, percent:4,
+      tiempo:5, time:5,
+      rango:6, badge:6,
+      errorescriticos:7, criticalerrors:7,
+      compromiso:8, commitment:8,
+      equipo1:1, team1:1,
+      equipo2:2, team2:2,
+      score1:3, team1score:3,
+      score2:4, team2score:4,
+      ganador:5, winner:5,
+      categoria:1, category:1,
+      regla:2, rule:2,
+      severidad:3, severity:3,
+      correcta:4, correct:4
+    };
+    for(const target of names){
+      const clean = String(target).trim().toLowerCase().replace(/\s+/g,"").replace("í","i").replace("á","a").replace("é","e");
+      if(indexMap[clean] !== undefined) return row[indexMap[clean]];
+    }
+  }
+
   return "";
 }
 function normalizeIndividualRows(rows){
@@ -631,7 +676,33 @@ function logAnswer(q,ok){
   postToSheet({type:"respuesta",category:q.category,rule:q.rule,severity:q.severity,correct:!!ok});
 }
 function renderTopThree(){let s=getScores().slice(0,3);document.getElementById("homeTopThree").innerHTML=s.length?s.map((x,i)=>`<div class="top-three-item"><span>${i+1}. ${x.name}</span><span>${x.score}/${x.max} · ${x.time}</span></div>`).join(""):`<div class="top-three-item"><span>${t("noTop")}</span><span>🤠</span></div>`}
-function renderLeaderboard(){let s=getScores(),body=document.getElementById("leaderboardBody");body.innerHTML=s.length?s.map((x,i)=>`<tr><td>${i+1}</td><td>${x.name}</td><td>${x.score}/${x.max}</td><td>${x.time}</td><td>${x.badge}</td><td>${x.criticalErrors||0}</td><td>${x.commitment||""}</td><td>${x.date}</td></tr>`).join(""):`<tr><td colspan="8" class="center">${t("noRegistered")}</td></tr>`;let ts=getTeamScores(),tb=document.getElementById("teamLeaderboardBody");tb.innerHTML=ts.length?ts.map((x,i)=>`<tr><td>${i+1}</td><td>${x.team1} vs ${x.team2}</td><td>${x.team1Score} - ${x.team2Score}</td><td><span class="winner-badge">${x.winner}</span></td><td>${x.date}</td></tr>`).join(""):`<tr><td colspan="5" class="center">${t("noRegistered")}</td></tr>`}
+function renderLeaderboard(){
+  let s = getScores();
+
+  // Sort all records from Google Sheets or localStorage
+  s = [...s].sort((a,b) => {
+    const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
+    if(scoreDiff !== 0) return scoreDiff;
+    return Number(a.seconds || 999999) - Number(b.seconds || 999999);
+  });
+
+  const body = document.getElementById("leaderboardBody");
+  if(body){
+    body.innerHTML = s.length
+      ? s.map((x,i)=>`<tr><td>${i+1}</td><td>${x.name || ""}</td><td>${x.score || 0}/${x.max || 5}</td><td>${x.time || ""}</td><td>${x.badge || ""}</td><td>${x.criticalErrors || 0}</td><td>${x.commitment || ""}</td><td>${x.date || ""}</td></tr>`).join("")
+      : `<tr><td colspan="8" class="center">${t("noRegistered")}</td></tr>`;
+  }
+
+  let ts = getTeamScores();
+  ts = [...ts].reverse();
+
+  const tb = document.getElementById("teamLeaderboardBody");
+  if(tb){
+    tb.innerHTML = ts.length
+      ? ts.map((x,i)=>`<tr><td>${i+1}</td><td>${x.team1 || ""} vs ${x.team2 || ""}</td><td>${x.team1Score || 0} - ${x.team2Score || 0}</td><td><span class="winner-badge">${x.winner || ""}</span></td><td>${x.date || ""}</td></tr>`).join("")
+      : `<tr><td colspan="5" class="center">${t("noRegistered")}</td></tr>`;
+  }
+}
 function renderHRBoard(){let at=document.getElementById("accuracyTitle");if(at)at.textContent=t("accuracyTitle");let ot=document.getElementById("opportunityTitle");if(ot)ot.textContent=t("opportunityTitle");let logs=getAnswerLogs(),agg={};logs.forEach(x=>{let k=x.category;agg[k]=agg[k]||{total:0,correct:0};agg[k].total++;if(x.correct)agg[k].correct++});let arr=Object.entries(agg).map(([topic,v])=>{let acc=v.total?Math.round(v.correct/v.total*100):0;return{topic,total:v.total,correct:v.correct,accuracy:acc,opportunity:100-acc}});let render=(data,type)=>data.length?data.map(x=>{let val=type==="accuracy"?x.accuracy:x.opportunity;return`<div class="hr-chart-row"><div class="hr-chart-label">${x.topic}<br><small>${t("totalAnswers")}: ${x.total}</small></div><div class="hr-bar-track"><div class="hr-bar ${type==="opportunity"?"opportunity":""}" style="width:${val}%"></div></div><div class="hr-chart-value">${val}%<br><small>${x.correct}/${x.total}</small></div></div>`}).join(""):`<div class="detail-item center">${t("noRegistered")}</div>`;let a=[...arr].sort((x,y)=>y.accuracy-x.accuracy||y.total-x.total),o=[...arr].sort((x,y)=>y.opportunity-x.opportunity||y.total-x.total);let ac=document.getElementById("accuracyChart"),op=document.getElementById("opportunityChart");if(ac)ac.innerHTML=render(a,"accuracy");if(op)op.innerHTML=render(o,"opportunity")}
 function clearLeaderboard(){if(confirm(currentLang==="es"?"¿Seguro que deseas borrar tableros y datos RH?":"Clear boards and HR data?")){localStorage.removeItem("westernRitScores");localStorage.removeItem("westernTeamScores");localStorage.removeItem("westernWrongLogs");localStorage.removeItem("westernAnswerLogs");renderLeaderboard();renderHRBoard();renderTopThree()}}
 function startGame(){let input=document.getElementById("participantName"),err=document.getElementById("nameError");if(!input.value.trim()){err.style.display="block";input.focus();return}err.style.display="none";participantName=input.value.trim();currentQuestions=shuffle(QUESTION_BANK).slice(0,questionCount).map(q=>({...q,opts:shuffle(local(q,"options"))}));currentIndex=0;score=0;answered=false;selectedCommitment="";criticalErrors=0;ritErrors=[];tournamentMode=false;showScreen("scenario");startTimer();renderQuestion()}
