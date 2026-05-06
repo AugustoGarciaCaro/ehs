@@ -300,7 +300,7 @@ async function refreshRemoteData(){
   remoteTeams = Array.isArray(torneo) ? torneo : [];
   remoteAnswers = Array.isArray(respuestas) ? respuestas : [];
 
-  console.log("Google Sheets loaded:", {
+  console.log("Google Sheets loaded FULL:", {
     individual: remoteIndividual.length,
     torneo: remoteTeams.length,
     respuestas: remoteAnswers.length
@@ -630,19 +630,37 @@ function normalizeAnswerRows(rows){
   }).filter(x=>x.category);
 }
 function getScores(){
-  if(useRemoteData && remoteIndividual.length) return normalizeIndividualRows(remoteIndividual);
-  try{return JSON.parse(localStorage.getItem("westernRitScores")||"[]")}catch(e){return[]}
+  if(useRemoteData){
+    return normalizeIndividualRows(remoteIndividual || []);
+  }
+  try{
+    return JSON.parse(localStorage.getItem("westernRitScores")||"[]");
+  }catch(e){
+    return [];
+  }
 }
 function getTeamScores(){
-  if(useRemoteData && remoteTeams.length) return normalizeTeamRows(remoteTeams);
-  try{return JSON.parse(localStorage.getItem("westernTeamScores")||"[]")}catch(e){return[]}
+  if(useRemoteData){
+    return normalizeTeamRows(remoteTeams || []);
+  }
+  try{
+    return JSON.parse(localStorage.getItem("westernTeamScores")||"[]");
+  }catch(e){
+    return [];
+  }
 }
 function getWrongLogs(){
   try{return JSON.parse(localStorage.getItem("westernWrongLogs")||"[]")}catch(e){return[]}
 }
 function getAnswerLogs(){
-  if(useRemoteData && remoteAnswers.length) return normalizeAnswerRows(remoteAnswers);
-  try{return JSON.parse(localStorage.getItem("westernAnswerLogs")||"[]")}catch(e){return[]}
+  if(useRemoteData){
+    return normalizeAnswerRows(remoteAnswers || []);
+  }
+  try{
+    return JSON.parse(localStorage.getItem("westernAnswerLogs")||"[]");
+  }catch(e){
+    return [];
+  }
 }
 
 function saveScore(e){
