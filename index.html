@@ -233,6 +233,7 @@ let currentLang="es",currentQuestions=[],currentIndex=0,score=0,answered=false,p
 const questionCount=5;
 
 const API_URL = "https://script.google.com/macros/s/AKfycbwUYhD-_UMlLBxICtjBPB88eW1X-R8duFz_SC4NggHfLimFqhfeWydj7XiVQeR4UVtl/exec";
+let remoteLoaded = false;
 let remoteIndividual = [];
 let remoteTeams = [];
 let remoteAnswers = [];
@@ -254,19 +255,23 @@ function fetchSheet(type){
 
     window[callbackName] = function(response){
       try {
-        let data = response;
+        console.log("JSONP response for", type, response);
 
-        if(response && response.data) data = response.data;
-        if(response && response.rows) data = response.rows;
+        let data = response;
+        if(response && Array.isArray(response.data)) data = response.data;
+        else if(response && Array.isArray(response.rows)) data = response.rows;
+        else if(response && response.ok && Array.isArray(response.data)) data = response.data;
 
         if(Array.isArray(data)){
           resolve(data);
         } else if(data && typeof data === "object") {
-          const numericKeys = Object.keys(data).filter(k => !isNaN(Number(k))).sort((a,b)=>Number(a)-Number(b));
+          const numericKeys = Object.keys(data)
+            .filter(k => !isNaN(Number(k)))
+            .sort((a,b)=>Number(a)-Number(b));
           if(numericKeys.length){
             resolve(numericKeys.map(k => data[k]));
           } else {
-            resolve([data]);
+            resolve([]);
           }
         } else {
           resolve([]);
@@ -299,11 +304,15 @@ async function refreshRemoteData(){
   remoteIndividual = Array.isArray(individual) ? individual : [];
   remoteTeams = Array.isArray(torneo) ? torneo : [];
   remoteAnswers = Array.isArray(respuestas) ? respuestas : [];
+  remoteLoaded = true;
 
   console.log("Google Sheets loaded FULL:", {
     individual: remoteIndividual.length,
     torneo: remoteTeams.length,
-    respuestas: remoteAnswers.length
+    respuestas: remoteAnswers.length,
+    remoteIndividual,
+    remoteTeams,
+    remoteAnswers
   });
 
   renderTopThree();
@@ -630,37 +639,25 @@ function normalizeAnswerRows(rows){
   }).filter(x=>x.category);
 }
 function getScores(){
-  if(useRemoteData){
+  if(useRemoteData && remoteLoaded){
     return normalizeIndividualRows(remoteIndividual || []);
   }
-  try{
-    return JSON.parse(localStorage.getItem("westernRitScores")||"[]");
-  }catch(e){
-    return [];
-  }
+  try{return JSON.parse(localStorage.getItem("westernRitScores")||"[]")}catch(e){return[]}
 }
 function getTeamScores(){
-  if(useRemoteData){
+  if(useRemoteData && remoteLoaded){
     return normalizeTeamRows(remoteTeams || []);
   }
-  try{
-    return JSON.parse(localStorage.getItem("westernTeamScores")||"[]");
-  }catch(e){
-    return [];
-  }
+  try{return JSON.parse(localStorage.getItem("westernTeamScores")||"[]")}catch(e){return[]}
 }
 function getWrongLogs(){
   try{return JSON.parse(localStorage.getItem("westernWrongLogs")||"[]")}catch(e){return[]}
 }
 function getAnswerLogs(){
-  if(useRemoteData){
+  if(useRemoteData && remoteLoaded){
     return normalizeAnswerRows(remoteAnswers || []);
   }
-  try{
-    return JSON.parse(localStorage.getItem("westernAnswerLogs")||"[]");
-  }catch(e){
-    return [];
-  }
+  try{return JSON.parse(localStorage.getItem("westernAnswerLogs")||"[]")}catch(e){return[]}
 }
 
 function saveScore(e){
