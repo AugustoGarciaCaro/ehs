@@ -136,8 +136,8 @@ button{cursor:pointer;font-weight:900;border-radius:999px;padding:12px 18px;font
 <section id="scenarioScreen" class="hidden"><div class="game-top"><div><strong id="gameLabel"></strong><h2 id="questionCounter"></h2></div><div><span class="metric">🏆 <span id="rewardLabel"></span>: <span id="scoreText">0</span></span> <span class="metric timer">⏱️ <span id="timerText">00:00</span></span></div></div><div id="turnBanner" class="turn-banner"><small id="turnBannerLabel"></small><strong id="turnBannerName"></strong><div style="margin-top:10px;font-size:20px"><span id="liveTeam1"></span> <strong id="liveTeam1Score">0</strong> · <span id="liveTeam2"></span> <strong id="liveTeam2Score">0</strong></div></div><div class="progress-wrap"><div id="progressBar" class="progress"></div></div><div class="card"><div class="card-content"><div id="severityBox"></div><div id="visualBox" class="visual"></div><h3 id="scenarioTitle"></h3><p id="scenarioText" class="lead"></p><div id="optionsBox" class="options"></div><div id="feedbackBox" class="feedback"><h3 id="feedbackTitle"></h3><p id="feedbackText"></p><button id="nextBtn" class="btn-primary" onclick="nextQuestion()"></button></div></div></div></section>
 <section id="commitmentScreen" class="hidden"><div class="center"><div class="badge">🤠</div><h2 id="commitmentTitle"></h2><p id="commitmentLead" class="lead"></p></div><div id="commitmentGrid" class="grid"></div></section>
 <section id="tournamentScreen" class="hidden"><div class="center"><div class="badge">🏆</div><h2 id="tournamentTitle"></h2><p id="tournamentLead" class="lead"></p></div><div class="card"><div class="card-content"><div class="tournament-panel"><div class="team-box"><strong id="team1Label"></strong><input id="team1Name"></div><div class="team-box"><strong id="team2Label"></strong><input id="team2Name"></div></div><br><div class="center"><button id="startTournamentBtn" class="btn-primary" onclick="startTournament()"></button></div><div class="tournament-score"><div class="stat"><strong id="team1Score">0</strong><span id="team1ScoreLabel"></span></div><div class="stat"><strong id="team2Score">0</strong><span id="team2ScoreLabel"></span></div></div><div id="tournamentStatus" class="how" style="display:none"></div></div></div></section>
-<section id="leaderboardScreen" class="hidden"><div class="center"><div class="badge">🏆</div><h2 id="boardTitle"></h2><p id="boardLead" class="lead"></p><button id="refreshBoardBtn" class="btn-primary" onclick="manualRefreshBoard()">🔄 Actualizar tablero</button><div id="refreshStatus" style="margin-top:10px;font-weight:950;color:#7c5a3a;"></div></div><div class="board-stack"><div class="card"><div class="card-content"><h3 id="individualBoardTitle"></h3><div class="leaderboardWrap"><table class="leaderboard"><thead><tr><th>#</th><th id="thName"></th><th id="thScore"></th><th id="thTime"></th><th id="thRank"></th><th id="thCritical"></th><th id="thCommitment"></th><th id="thDate"></th></tr></thead><tbody id="leaderboardBody"></tbody></table></div></div></div><div class="card"><div class="card-content"><h3 id="teamBoardTitle"></h3><div class="leaderboardWrap"><table class="leaderboard"><thead><tr><th>#</th><th id="thTeams"></th><th id="thFinalScore"></th><th id="thWinner"></th><th id="thTeamDate"></th></tr></thead><tbody id="teamLeaderboardBody"></tbody></table></div></div></div></div><br><div class="center"><button id="clearBoardBtn" class="btn-secondary" onclick="clearLeaderboard()"></button> <button id="newCowboyBtn" class="btn-primary" onclick="showScreen('home')"></button></div></section>
-<section id="hrScreen" class="hidden"><div class="center"><div class="badge">📊 HR</div><h2 id="hrBoardTitle"></h2><p id="hrBoardLead" class="lead"></p><button id="refreshHRBtn" class="btn-primary" onclick="manualRefreshBoard()">🔄 Actualizar tablero</button><div id="refreshHRStatus" style="margin-top:10px;font-weight:950;color:#7c5a3a;"></div></div><div class="hr-chart-grid"><div class="card"><div class="card-content"><h3 id="accuracyTitle"></h3><div id="accuracyChart"></div></div></div><div class="card"><div class="card-content"><h3 id="opportunityTitle"></h3><div id="opportunityChart"></div></div></div></div></section>
+<section id="leaderboardScreen" class="hidden"><div class="center"><div class="badge">🏆</div><h2 id="boardTitle"></h2><p id="boardLead" class="lead"></p><button id="refreshBoardBtn" class="btn-primary" onclick="manualRefreshBoard()">🔄 Actualizar tablero</button><div id="refreshStatus" style="margin-top:10px;font-weight:950;color:#7c5a3a;"></div><div id="autoRefreshInfo" style="margin-top:6px;font-weight:900;color:#7c5a3a;font-size:14px;"></div></div><div class="board-stack"><div class="card"><div class="card-content"><h3 id="individualBoardTitle"></h3><div class="leaderboardWrap"><table class="leaderboard"><thead><tr><th>#</th><th id="thName"></th><th id="thScore"></th><th id="thTime"></th><th id="thRank"></th><th id="thCritical"></th><th id="thCommitment"></th><th id="thDate"></th></tr></thead><tbody id="leaderboardBody"></tbody></table></div></div></div><div class="card"><div class="card-content"><h3 id="teamBoardTitle"></h3><div class="leaderboardWrap"><table class="leaderboard"><thead><tr><th>#</th><th id="thTeams"></th><th id="thFinalScore"></th><th id="thWinner"></th><th id="thTeamDate"></th></tr></thead><tbody id="teamLeaderboardBody"></tbody></table></div></div></div></div><br><div class="center"><button id="clearBoardBtn" class="btn-secondary" onclick="clearLeaderboard()"></button> <button id="newCowboyBtn" class="btn-primary" onclick="showScreen('home')"></button></div></section>
+<section id="hrScreen" class="hidden"><div class="center"><div class="badge">📊 HR</div><h2 id="hrBoardTitle"></h2><p id="hrBoardLead" class="lead"></p><button id="refreshHRBtn" class="btn-primary" onclick="manualRefreshBoard()">🔄 Actualizar tablero</button><div id="refreshHRStatus" style="margin-top:10px;font-weight:950;color:#7c5a3a;"></div><div id="autoRefreshHRInfo" style="margin-top:6px;font-weight:900;color:#7c5a3a;font-size:14px;"></div></div><div class="hr-chart-grid"><div class="card"><div class="card-content"><h3 id="accuracyTitle"></h3><div id="accuracyChart"></div></div></div><div class="card"><div class="card-content"><h3 id="opportunityTitle"></h3><div id="opportunityChart"></div></div></div></div></section>
 <section id="finalScreen" class="hidden"><div class="card"><div class="card-content center"><div style="font-size:70px">🤠</div><h2 id="finalMessage"></h2><div id="finalBadge" class="badge"></div><p id="finalLead" class="lead"></p><div id="finalCommitment" class="final-commitment"></div><div id="finalBonus"></div><div class="stats"><div class="stat"><strong id="finalPercent"></strong><span id="scoreResultLabel"></span></div><div class="stat"><strong id="finalScenario"></strong><span id="duelsWonLabel"></span></div><div class="stat"><strong id="finalTime"></strong><span id="timeLabel"></span></div></div><div class="how"><h3 id="finalMsgTitle"></h3><p id="finalMsgText"></p></div><br><button id="viewBoardBtn" class="btn-primary" onclick="showScreen('leaderboard')"></button> <button id="rematchBtn" class="btn-secondary" onclick="startGame()"></button> <button id="newCowboyBtn2" class="btn-secondary" onclick="showScreen('home')"></button></div></div></section>
 </main>
 
@@ -229,6 +229,12 @@ if(!UI.en.refreshingBoard) UI.en.refreshingBoard = "Refreshing...";
 if(!UI.es.boardUpdated) UI.es.boardUpdated = "Tablero actualizado";
 if(!UI.en.boardUpdated) UI.en.boardUpdated = "Board updated";
 
+
+if(!UI.es.autoRefreshOn) UI.es.autoRefreshOn = "Actualización automática activa";
+if(!UI.en.autoRefreshOn) UI.en.autoRefreshOn = "Auto-refresh active";
+if(!UI.es.nextRefresh) UI.es.nextRefresh = "Próxima actualización";
+if(!UI.en.nextRefresh) UI.en.nextRefresh = "Next refresh";
+
 let currentLang="es",currentQuestions=[],currentIndex=0,score=0,answered=false,participantName="",selectedCommitment="",criticalErrors=0,ritErrors=[],timerInterval=null,startTime=null,elapsedSeconds=0,tournamentMode=false,tournamentTurn=0,tournamentScores=[0,0],tournamentNames=["Equipo 1","Equipo 2"],genericMode="",genericIndex=0;
 const questionCount=5;
 
@@ -238,6 +244,9 @@ let remoteIndividual = [];
 let remoteTeams = [];
 let remoteAnswers = [];
 let useRemoteData = true;
+let autoRefreshTimer = null;
+let autoRefreshSeconds = 15;
+let autoRefreshCountdown = autoRefreshSeconds;
 
 function postToSheet(payload){
   return fetch(API_URL, {
@@ -346,7 +355,7 @@ function startTimer(){stopTimer();startTime=Date.now();elapsedSeconds=0;document
 function stopTimer(){if(timerInterval)clearInterval(timerInterval);timerInterval=null;if(startTime)elapsedSeconds=Math.floor((Date.now()-startTime)/1000)}
 function setLanguage(lang){currentLang=lang;applyLanguage();
 refreshRemoteData();
-setInterval(refreshRemoteData, 15000);if(currentQuestions.length&&!document.getElementById("scenarioScreen").classList.contains("hidden"))renderQuestion()}
+startAutoRefresh();if(currentQuestions.length&&!document.getElementById("scenarioScreen").classList.contains("hidden"))renderQuestion()}
 
 function applyLanguage(){
   document.documentElement.lang=currentLang;
@@ -534,7 +543,7 @@ function closePlayModal(){
   const modal=document.getElementById("playModal");
   if(modal) modal.style.display="none";
 }
-function showScreen(s){["home","rules","contribute","scenario","commitment","tournament","leaderboard","hr","final"].forEach(x=>document.getElementById(x+"Screen").classList.add("hidden"));document.getElementById(s+"Screen").classList.remove("hidden");if(s==="leaderboard")renderLeaderboard();if(s==="hr")renderHRBoard();if(s==="home")renderTopThree();window.scrollTo({top:0,behavior:"smooth"})}
+function showScreen(s){["home","rules","contribute","scenario","commitment","tournament","leaderboard","hr","final"].forEach(x=>document.getElementById(x+"Screen").classList.add("hidden"));document.getElementById(s+"Screen").classList.remove("hidden");if(s==="leaderboard"){renderLeaderboard();startAutoRefresh();}if(s==="hr"){renderHRBoard();startAutoRefresh();}if(s==="home")renderTopThree();window.scrollTo({top:0,behavior:"smooth"})}
 function renderRules(){document.getElementById("rulesGrid").innerHTML=t("rules").map((r,i)=>`<div class="info-card rule-click" onclick="openRule(${i})"><strong>⭐ ${r[0]}</strong><br>${r[1]}<br><br><small><strong>${t("clickRule")}</strong></small></div>`).join("")}
 function renderContributions(){document.getElementById("contributeGrid").innerHTML=t("contributions").map((c,i)=>`<button class="commitment-option" onclick="openContribution(${i})"><strong>${c[0]}</strong><br>${c[1]}</button>`).join("")}
 function renderCommitment(){document.getElementById("commitmentGrid").innerHTML=t("contributions").slice(0,4).map(c=>`<button class="commitment-option" onclick="selectCommitment('${c[2].replace(/'/g,"\\'")}')"><strong>${c[0]}</strong><br>${c[1]}</button>`).join("")}
@@ -546,6 +555,40 @@ function genericNext(){let total=genericMode==="rule"?5:t("contributions").lengt
 function closeGeneric(){document.getElementById("genericOverlay").style.display="none"}
 function showAllChallenges(){document.getElementById("genericBadge").textContent="📜";document.getElementById("genericTitle").textContent=t("challengesTitle");document.getElementById("genericLead").textContent=t("challengesLead");document.getElementById("genericContent").innerHTML=QUESTION_BANK.map((q,i)=>`<div class="detail-item"><strong>#${i+1}</strong>${local(q,"title")} <span class="severity">${difficulty(q)}</span></div>`).join("");document.getElementById("genericNav").innerHTML="";document.getElementById("genericOverlay").style.display="flex"}
 
+
+
+function isBoardVisible(){
+  return !document.getElementById("leaderboardScreen").classList.contains("hidden") ||
+         !document.getElementById("hrScreen").classList.contains("hidden");
+}
+function updateAutoRefreshInfo(){
+  const txt = `🔁 ${t("autoRefreshOn")} · ${t("nextRefresh")}: ${autoRefreshCountdown}s`;
+  const a = document.getElementById("autoRefreshInfo");
+  const b = document.getElementById("autoRefreshHRInfo");
+  if(a) a.textContent = txt;
+  if(b) b.textContent = txt;
+}
+function startAutoRefresh(){
+  if(autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshCountdown = autoRefreshSeconds;
+  updateAutoRefreshInfo();
+
+  autoRefreshTimer = setInterval(async () => {
+    if(!isBoardVisible()){
+      return;
+    }
+
+    autoRefreshCountdown--;
+    if(autoRefreshCountdown <= 0){
+      autoRefreshCountdown = autoRefreshSeconds;
+      await refreshRemoteData();
+  autoRefreshCountdown = autoRefreshSeconds;
+  updateAutoRefreshInfo();
+    }
+
+    updateAutoRefreshInfo();
+  }, 1000);
+}
 
 async function manualRefreshBoard(){
   const btn = document.getElementById("refreshBoardBtn");
