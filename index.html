@@ -239,15 +239,30 @@ function postToSheet(payload){
   }).catch(err => console.warn("Sheet post failed", err));
 }
 
-async function fetchSheet(type){
-  try {
-    const res = await fetch(`${API_URL}?type=${type}&t=${Date.now()}`);
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    return await res.json();
-  } catch(err) {
-    console.warn("Sheet read failed", type, err);
-    return [];
-  }
+function fetchSheet(type){
+  return new Promise((resolve) => {
+    const callbackName = "jsonpCallback_" + type + "_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    const script = document.createElement("script");
+
+    window[callbackName] = function(data){
+      try {
+        resolve(Array.isArray(data) ? data : []);
+      } finally {
+        delete window[callbackName];
+        if(script && script.parentNode) script.parentNode.removeChild(script);
+      }
+    };
+
+    script.onerror = function(){
+      console.warn("JSONP read failed", type);
+      delete window[callbackName];
+      if(script && script.parentNode) script.parentNode.removeChild(script);
+      resolve([]);
+    };
+
+    script.src = `${API_URL}?type=${encodeURIComponent(type)}&callback=${callbackName}&t=${Date.now()}`;
+    document.body.appendChild(script);
+  });
 }
 
 async function refreshRemoteData(){
