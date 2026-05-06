@@ -123,14 +123,20 @@ button{cursor:pointer;font-weight:900;border-radius:999px;padding:12px 18px;font
   .saloon-action { min-height: 115px; }
 }
 
+
+.recognition-form{display:grid;gap:14px;margin-top:18px}
+.recognition-form input{border:2px solid rgba(139,69,19,.35);border-radius:16px;padding:14px 16px;font-size:16px;font-weight:800;background:#fff7ed;width:100%}
+.recognition-note{background:#ffedd5;border:2px dashed rgba(139,69,19,.35);border-radius:18px;padding:14px;color:#7c5a3a;font-weight:900}
+
 @media(max-width:900px){.hero,.options,.grid,.stats,.bonus-detail,.tournament-panel,.tournament-score{grid-template-columns:1fr}.nav{justify-content:center}.brand{text-align:center}.visual{aspect-ratio:4/3}.leaderboard{min-width:850px}}
 @media(max-width:480px){.container{padding:22px 12px 42px}button{width:100%}h1{font-size:40px}.visual{aspect-ratio:1/1}.visual-tag{left:12px;right:12px;text-align:center}.visual-label{left:12px;right:12px}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 <header><div class="nav"><div class="brand"><div class="star">⭐</div><div>Reglas Cardinales del Viejo Oeste<small id="brandSub"></small></div></div><div id="navButtons"></div></div></header>
 <main class="container">
-<section id="homeScreen"><div class="hero"><div><div id="badgeHome" class="badge"></div><h1 id="mainTitle"></h1><p id="intro" class="lead"></p><div class="name-box language-buttons"><button id="btnLangEs" onclick="setLanguage('es')">Español</button><button id="btnLangEn" onclick="setLanguage('en')">English</button></div><div class="name-box"><input id="participantName" maxlength="40"><button id="startBtn" class="btn-primary" onclick="startGame()"></button><div id="nameError" class="name-error"></div></div><button id="viewRulesBtn" class="btn-secondary" onclick="showScreen('rules')"></button> <button id="contributeBtnHome" class="btn-secondary" onclick="showScreen('contribute')"></button> <button id="homeTournamentBtn" class="btn-secondary" onclick="showScreen('tournament')"></button></div><div class="card"><div class="card-content"><div class="stats"><div class="stat">⭐<strong>5</strong><span id="statRules"></span></div><div class="stat">🎯<strong>5</strong><span id="statQuestions"></span></div><div class="stat challenge-stat" onclick="showAllChallenges()">🤠<strong id="totalChallenges">50</strong><span id="totalChallengesLabel"></span><br><small id="totalChallengesHint"></small></div></div><div class="how"><h3 id="howTitle"></h3><div id="howList"></div></div><div class="top-three"><h3 id="top3Title"></h3><div id="homeTopThree"></div></div></div></div></div></section>
+<section id="homeScreen"><div class="hero"><div><div id="badgeHome" class="badge"></div><h1 id="mainTitle"></h1><p id="intro" class="lead"></p><div class="name-box language-buttons"><button id="btnLangEs" onclick="setLanguage('es')">Español</button><button id="btnLangEn" onclick="setLanguage('en')">English</button></div><div class="name-box"><input id="participantName" maxlength="40"><button id="startBtn" class="btn-primary" onclick="startGame()"></button><div id="nameError" class="name-error"></div></div><button id="viewRulesBtn" class="btn-secondary" onclick="showScreen('rules')"></button> <button id="contributeBtnHome" class="btn-secondary" onclick="showScreen('contribute')"></button> <button id="homeTournamentBtn" class="btn-secondary" onclick="showScreen('tournament')"></button> <button id="homeRecognitionBtn" class="btn-secondary" onclick="openRecognitionModal()"></button></div><div class="card"><div class="card-content"><div class="stats"><div class="stat">⭐<strong>5</strong><span id="statRules"></span></div><div class="stat">🎯<strong>5</strong><span id="statQuestions"></span></div><div class="stat challenge-stat" onclick="showAllChallenges()">🤠<strong id="totalChallenges">50</strong><span id="totalChallengesLabel"></span><br><small id="totalChallengesHint"></small></div></div><div class="how"><h3 id="howTitle"></h3><div id="howList"></div></div><div class="top-three"><h3 id="top3Title"></h3><div id="homeTopThree"></div></div></div></div></div></section>
 <section id="rulesScreen" class="hidden"><div class="center"><div class="badge">📜</div><h2 id="rulesTitle"></h2><p id="rulesLead" class="lead"></p></div><div id="rulesGrid" class="grid"></div></section>
 <section id="contributeScreen" class="hidden"><div class="center"><div class="badge">🤠</div><h2 id="contributeTitle"></h2><p id="contributeLead" class="lead"></p></div><div id="contributeGrid" class="grid"></div></section>
 <section id="scenarioScreen" class="hidden"><div class="game-top"><div><strong id="gameLabel"></strong><h2 id="questionCounter"></h2></div><div><span class="metric">🏆 <span id="rewardLabel"></span>: <span id="scoreText">0</span></span> <span class="metric timer">⏱️ <span id="timerText">00:00</span></span></div></div><div id="turnBanner" class="turn-banner"><small id="turnBannerLabel"></small><strong id="turnBannerName"></strong><div style="margin-top:10px;font-size:20px"><span id="liveTeam1"></span> <strong id="liveTeam1Score">0</strong> · <span id="liveTeam2"></span> <strong id="liveTeam2Score">0</strong></div></div><div class="progress-wrap"><div id="progressBar" class="progress"></div></div><div class="card"><div class="card-content"><div id="severityBox"></div><div id="visualBox" class="visual"></div><h3 id="scenarioTitle"></h3><p id="scenarioText" class="lead"></p><div id="optionsBox" class="options"></div><div id="feedbackBox" class="feedback"><h3 id="feedbackTitle"></h3><p id="feedbackText"></p><button id="nextBtn" class="btn-primary" onclick="nextQuestion()"></button></div></div></div></section>
@@ -140,6 +146,25 @@ button{cursor:pointer;font-weight:900;border-radius:999px;padding:12px 18px;font
 <section id="hrScreen" class="hidden"><div class="center"><div class="badge">📊 HR</div><h2 id="hrBoardTitle"></h2><p id="hrBoardLead" class="lead"></p><button id="refreshHRBtn" class="btn-primary" onclick="manualRefreshBoard()">🔄 Actualizar tablero</button><div id="refreshHRStatus" style="margin-top:10px;font-weight:950;color:#7c5a3a;"></div><div id="autoRefreshHRInfo" style="margin-top:6px;font-weight:900;color:#7c5a3a;font-size:14px;"></div></div><div class="hr-chart-grid"><div class="card"><div class="card-content"><h3 id="accuracyTitle"></h3><div id="accuracyChart"></div></div></div><div class="card"><div class="card-content"><h3 id="opportunityTitle"></h3><div id="opportunityChart"></div></div></div></div></section>
 <section id="finalScreen" class="hidden"><div class="card"><div class="card-content center"><div style="font-size:70px">🤠</div><h2 id="finalMessage"></h2><div id="finalBadge" class="badge"></div><p id="finalLead" class="lead"></p><div id="finalCommitment" class="final-commitment"></div><div id="finalBonus"></div><div class="stats"><div class="stat"><strong id="finalPercent"></strong><span id="scoreResultLabel"></span></div><div class="stat"><strong id="finalScenario"></strong><span id="duelsWonLabel"></span></div><div class="stat"><strong id="finalTime"></strong><span id="timeLabel"></span></div></div><div class="how"><h3 id="finalMsgTitle"></h3><p id="finalMsgText"></p></div><br><button id="viewBoardBtn" class="btn-primary" onclick="showScreen('leaderboard')"></button> <button id="rematchBtn" class="btn-secondary" onclick="startGame()"></button> <button id="newCowboyBtn2" class="btn-secondary" onclick="showScreen('home')"></button></div></div></section>
 </main>
+
+
+<div id="recognitionModal" class="overlay">
+  <div class="modal">
+    <div class="badge">🏅 RH</div>
+    <h2 id="recognitionTitle"></h2>
+    <p id="recognitionLead" class="lead"></p>
+    <div class="recognition-form">
+      <label style="font-weight:950;" id="recognitionNameLabel"></label>
+      <input id="recognitionNameInput" maxlength="60">
+      <label style="font-weight:950;" id="recognitionPhoneLabel"></label>
+      <input id="recognitionPhoneInput" maxlength="20" inputmode="numeric">
+      <div id="recognitionError" class="name-error"></div>
+      <div id="recognitionStatus" class="recognition-note" style="display:none;"></div>
+      <button id="recognitionGenerateBtn" class="btn-primary" onclick="generateRecognitionAndWhatsApp()"></button>
+      <button id="recognitionCloseBtn" class="btn-secondary" onclick="closeRecognitionModal()"></button>
+    </div>
+  </div>
+</div>
 
 <div id="playModal" class="overlay">
   <div class="modal saloon-modal">
@@ -234,6 +259,26 @@ if(!UI.es.autoRefreshOn) UI.es.autoRefreshOn = "Actualización automática activ
 if(!UI.en.autoRefreshOn) UI.en.autoRefreshOn = "Auto-refresh active";
 if(!UI.es.nextRefresh) UI.es.nextRefresh = "Próxima actualización";
 if(!UI.en.nextRefresh) UI.en.nextRefresh = "Next refresh";
+
+
+if(!UI.es.navRecognition) UI.es.navRecognition = "Reconocimiento";
+if(!UI.en.navRecognition) UI.en.navRecognition = "Recognition";
+if(!UI.es.recognitionTitle) UI.es.recognitionTitle = "Generar reconocimiento";
+if(!UI.en.recognitionTitle) UI.en.recognitionTitle = "Generate recognition";
+if(!UI.es.recognitionLead) UI.es.recognitionLead = "Captura los datos del participante para generar el PDF y preparar el mensaje de WhatsApp.";
+if(!UI.en.recognitionLead) UI.en.recognitionLead = "Enter participant information to generate the PDF and prepare the WhatsApp message.";
+if(!UI.es.recognitionName) UI.es.recognitionName = "Nombre del participante";
+if(!UI.en.recognitionName) UI.en.recognitionName = "Participant name";
+if(!UI.es.recognitionPhone) UI.es.recognitionPhone = "Celular con lada";
+if(!UI.en.recognitionPhone) UI.en.recognitionPhone = "Phone number with country code";
+if(!UI.es.recognitionGenerate) UI.es.recognitionGenerate = "Generar PDF y abrir WhatsApp";
+if(!UI.en.recognitionGenerate) UI.en.recognitionGenerate = "Generate PDF and open WhatsApp";
+if(!UI.es.recognitionClose) UI.es.recognitionClose = "Cerrar";
+if(!UI.en.recognitionClose) UI.en.recognitionClose = "Close";
+if(!UI.es.recognitionError) UI.es.recognitionError = "Captura nombre y celular para continuar.";
+if(!UI.en.recognitionError) UI.en.recognitionError = "Enter name and phone number to continue.";
+if(!UI.es.recognitionReady) UI.es.recognitionReady = "PDF generado. WhatsApp se abrirá con el mensaje listo.";
+if(!UI.en.recognitionReady) UI.en.recognitionReady = "PDF generated. WhatsApp will open with the message ready.";
 
 let currentLang="es",currentQuestions=[],currentIndex=0,score=0,answered=false,participantName="",selectedCommitment="",criticalErrors=0,ritErrors=[],timerInterval=null,startTime=null,elapsedSeconds=0,tournamentMode=false,tournamentTurn=0,tournamentScores=[0,0],tournamentNames=["Equipo 1","Equipo 2"],genericMode="",genericIndex=0;
 const questionCount=5;
@@ -379,7 +424,7 @@ function applyLanguage(){
       <button class="btn-secondary" onclick="showScreen('rules')">${t("navRules")}</button>
       <button class="btn-secondary" onclick="showScreen('contribute')">${t("navContribute")}</button>
       <button class="btn-secondary" onclick="showScreen('leaderboard')">${t("navBoard")}</button>
-      <button class="btn-secondary" onclick="showScreen('hr')">${t("navHR")}</button>
+      <button class="btn-secondary" onclick="showScreen('hr')">${t("navHR")}</button>\n      <button class="btn-secondary" onclick="openRecognitionModal()">${t("navRecognition")}</button>
       <button class="btn-primary" onclick="openPlayModal()">${t("navPlay")}</button>
     `;
   }
@@ -391,6 +436,7 @@ function applyLanguage(){
   setText("viewRulesBtn","viewRules");
   setText("contributeBtnHome","navContribute");
   setText("homeTournamentBtn","playTournament");
+  setText("homeRecognitionBtn","navRecognition");
   setText("statRules","statRules");
   setText("statQuestions","statQuestions");
   setText("totalChallengesLabel","totalChallengesLabel");
@@ -461,6 +507,15 @@ function applyLanguage(){
   setText("ritCloseBtn","close");
   setText("ritFooterText","ritFooter");
   setText("genericClose","close");
+  setText("recognitionTitle","recognitionTitle");
+  setText("recognitionLead","recognitionLead");
+  setText("recognitionNameLabel","recognitionName");
+  setText("recognitionPhoneLabel","recognitionPhone");
+  setText("recognitionGenerateBtn","recognitionGenerate");
+  setText("recognitionCloseBtn","recognitionClose");
+  const rn=document.getElementById("recognitionNameInput"); if(rn) rn.placeholder=t("recognitionName");
+  const rp=document.getElementById("recognitionPhoneInput"); if(rp) rp.placeholder="526461234567";
+  const re=document.getElementById("recognitionError"); if(re) re.textContent=t("recognitionError");
   setText("refreshBoardBtn","refreshBoard"); const rb=document.getElementById("refreshBoardBtn"); if(rb && !rb.textContent.includes("🔄")) rb.textContent="🔄 "+rb.textContent;
   setText("refreshHRBtn","refreshBoard"); const rhb=document.getElementById("refreshHRBtn"); if(rhb && !rhb.textContent.includes("🔄")) rhb.textContent="🔄 "+rhb.textContent;
   setText("playModeTitle","playModeTitle");
@@ -529,6 +584,102 @@ function refreshPlayModalTexts(){
   const err=document.getElementById("modalNameError");
   if(err) err.textContent=t("modalNameError");
 }
+
+function openRecognitionModal(){
+  const modal=document.getElementById("recognitionModal");
+  const err=document.getElementById("recognitionError");
+  const status=document.getElementById("recognitionStatus");
+  if(err) err.style.display="none";
+  if(status) status.style.display="none";
+  if(modal) modal.style.display="flex";
+  applyLanguage();
+  const nameInput=document.getElementById("recognitionNameInput");
+  const homeName=document.getElementById("participantName");
+  if(nameInput && homeName && homeName.value.trim() && !nameInput.value.trim()){
+    nameInput.value=homeName.value.trim();
+  }
+  if(nameInput) nameInput.focus();
+}
+function closeRecognitionModal(){
+  const modal=document.getElementById("recognitionModal");
+  if(modal) modal.style.display="none";
+}
+function cleanPhoneForWhatsApp(phone){
+  return String(phone || "").replace(/\D/g,"");
+}
+function generateRecognitionPDF(name){
+  const jsPDF = window.jspdf && window.jspdf.jsPDF;
+  if(!jsPDF){
+    alert("No se pudo cargar la librería PDF. Revisa conexión a internet.");
+    return false;
+  }
+  const doc = new jsPDF({orientation:"landscape", unit:"pt", format:"letter"});
+  const w = doc.internal.pageSize.getWidth();
+  const h = doc.internal.pageSize.getHeight();
+  doc.setFillColor(255,247,237);
+  doc.rect(0,0,w,h,"F");
+  doc.setFillColor(254,215,170);
+  doc.rect(24,24,w-48,h-48,"F");
+  doc.setDrawColor(124,45,18);
+  doc.setLineWidth(6);
+  doc.roundedRect(36,36,w-72,h-72,18,18);
+  doc.setDrawColor(242,192,120);
+  doc.setLineWidth(2);
+  doc.roundedRect(54,54,w-108,h-108,14,14);
+  doc.setTextColor(59,29,11);
+  doc.setFont("times","bold");
+  doc.setFontSize(34);
+  doc.text("EHS Safety Fair 2026", w/2, 120, {align:"center"});
+  doc.setFontSize(20);
+  doc.text("Equipo de Recursos Humanos", w/2, 152, {align:"center"});
+  doc.setFontSize(30);
+  doc.text("Reconocimiento", w/2, 220, {align:"center"});
+  doc.setFont("times","normal");
+  doc.setFontSize(18);
+  doc.text("Se otorga el presente reconocimiento a:", w/2, 260, {align:"center"});
+  doc.setFont("times","bold");
+  doc.setFontSize(32);
+  doc.text(String(name).toUpperCase(), w/2, 320, {align:"center"});
+  doc.setFont("times","normal");
+  doc.setFontSize(17);
+  doc.text("por su participación en el stand de Recursos Humanos", w/2, 365, {align:"center"});
+  doc.text("de Reglas Cardinales del Viejo Oeste.", w/2, 392, {align:"center"});
+  doc.setFontSize(14);
+  doc.text("Gracias por contribuir a fortalecer la cultura de seguridad.", w/2, 445, {align:"center"});
+  doc.setFont("times","bold");
+  doc.setFontSize(16);
+  doc.text("ICU Medical · Recursos Humanos", w/2, h-96, {align:"center"});
+  doc.setFont("times","normal");
+  doc.setFontSize(12);
+  doc.text(new Date().toLocaleDateString("es-MX"), w/2, h-70, {align:"center"});
+  const safeName = String(name).trim().replace(/[^\w\sáéíóúÁÉÍÓÚñÑ-]/g,"").replace(/\s+/g,"_");
+  doc.save(`Reconocimiento_Reglas_Cardinales_${safeName}.pdf`);
+  return true;
+}
+function generateRecognitionAndWhatsApp(){
+  const nameInput=document.getElementById("recognitionNameInput");
+  const phoneInput=document.getElementById("recognitionPhoneInput");
+  const err=document.getElementById("recognitionError");
+  const status=document.getElementById("recognitionStatus");
+  const name=nameInput ? nameInput.value.trim() : "";
+  const phone=phoneInput ? cleanPhoneForWhatsApp(phoneInput.value) : "";
+  if(!name || !phone){
+    if(err) err.style.display="block";
+    if(status) status.style.display="none";
+    return;
+  }
+  if(err) err.style.display="none";
+  const ok = generateRecognitionPDF(name);
+  if(!ok) return;
+  if(status){
+    status.textContent=t("recognitionReady");
+    status.style.display="block";
+  }
+  const msg = `Hola ${name}, muchas gracias por participar en el stand de Recursos Humanos dentro de la EHS Safety Fair 2026. Te compartimos tu reconocimiento por participar en la dinámica de Reglas Cardinales.`;
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  setTimeout(()=>window.open(url,"_blank"),500);
+}
+
 function openPlayModal(){
   const modal=document.getElementById("playModal");
   const step=document.getElementById("modalNameStep");
