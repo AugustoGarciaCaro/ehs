@@ -255,23 +255,18 @@ function fetchSheet(type){
 
     window[callbackName] = function(response){
       try {
-        console.log("JSONP response for", type, response);
-
         let data = response;
         if(response && Array.isArray(response.data)) data = response.data;
-        else if(response && Array.isArray(response.rows)) data = response.rows;
-        else if(response && response.ok && Array.isArray(response.data)) data = response.data;
+        if(response && Array.isArray(response.rows)) data = response.rows;
 
         if(Array.isArray(data)){
           resolve(data);
         } else if(data && typeof data === "object") {
-          const numericKeys = Object.keys(data)
-            .filter(k => !isNaN(Number(k)))
-            .sort((a,b)=>Number(a)-Number(b));
+          const numericKeys = Object.keys(data).filter(k => !isNaN(Number(k))).sort((a,b)=>Number(a)-Number(b));
           if(numericKeys.length){
             resolve(numericKeys.map(k => data[k]));
           } else {
-            resolve([]);
+            resolve([data]);
           }
         } else {
           resolve([]);
@@ -562,33 +557,41 @@ async function manualRefreshBoard(){
 }
 
 
+function normalizeKey(value){
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/\s+/g,"");
+}
 function getCell(row, names){
   if(!row) return "";
 
-  // Object rows from Apps Script: {fecha:..., nombre:...}
   if(!Array.isArray(row) && typeof row === "object"){
     const keys = Object.keys(row);
     for(const target of names){
-      const match = keys.find(k => String(k).trim().toLowerCase() === String(target).trim().toLowerCase());
+      const cleanTarget = normalizeKey(target);
+      const match = keys.find(k => normalizeKey(k) === cleanTarget);
       if(match !== undefined) return row[match];
     }
   }
 
-  // Array rows fallback based on expected column positions
   if(Array.isArray(row)){
     const indexMap = {
       fecha:0, date:0,
       nombre:1, name:1, participante:1, vaquero:1,
       score:2, puntaje:2,
-      max:3, porcentaje:4, percent:4,
+      max:3,
+      porcentaje:4, percent:4,
       tiempo:5, time:5,
       rango:6, badge:6,
       errorescriticos:7, criticalerrors:7,
       compromiso:8, commitment:8,
       equipo1:1, team1:1,
       equipo2:2, team2:2,
-      score1:3, team1score:3,
-      score2:4, team2score:4,
+      score1:3, team1score:3, puntaje1:3,
+      score2:4, team2score:4, puntaje2:4,
       ganador:5, winner:5,
       categoria:1, category:1,
       regla:2, rule:2,
@@ -596,7 +599,7 @@ function getCell(row, names){
       correcta:4, correct:4
     };
     for(const target of names){
-      const clean = String(target).trim().toLowerCase().replace(/\s+/g,"").replace("í","i").replace("á","a").replace("é","e");
+      const clean = normalizeKey(target);
       if(indexMap[clean] !== undefined) return row[indexMap[clean]];
     }
   }
@@ -604,59 +607,53 @@ function getCell(row, names){
   return "";
 }
 function normalizeIndividualRows(rows){
-  return rows.map(r=>({
+  return (Array.isArray(rows)?rows:[]).map(r=>({
     name:getCell(r,["nombre","name","participante","vaquero"]),
     score:Number(getCell(r,["score","puntaje"]) || 0),
-    max:Number(getCell(r,["max","máximo","maximo"]) || 5),
-    percent:Number(getCell(r,["porcentaje","percent","%"]) || 0),
+    max:Number(getCell(r,["max","maximo","máximo"]) || 5),
+    percent:Number(getCell(r,["porcentaje","percent"]) || 0),
     time:getCell(r,["tiempo","time"]),
     badge:getCell(r,["rango","badge"]),
     criticalErrors:Number(getCell(r,["erroresCriticos","errores críticos","criticalErrors","critical errors"]) || 0),
     commitment:getCell(r,["compromiso","commitment"]),
-    date:getCell(r,["fecha","date"])
+    date:getCell(r,["fecha","Fecha","date","Date"])
   })).filter(x=>x.name || x.score);
 }
 function normalizeTeamRows(rows){
-  return rows.map(r=>({
-    team1:getCell(r,["equipo1","team1","equipo 1"]),
-    team2:getCell(r,["equipo2","team2","equipo 2"]),
-    team1Score:Number(getCell(r,["score1","team1Score","puntaje1","score equipo 1"]) || 0),
-    team2Score:Number(getCell(r,["score2","team2Score","puntaje2","score equipo 2"]) || 0),
-    winner:getCell(r,["ganador","winner"]),
-    date:getCell(r,["fecha","date"])
-  })).filter(x=>x.team1 || x.team2);
+  return (Array.isArray(rows)?rows:[]).map(r=>({
+    team1:getCell(r,["equipo1","Equipo1","team1","equipo 1"]),
+    team2:getCell(r,["equipo2","Equipo2","team2","equipo 2"]),
+    team1Score:Number(getCell(r,["score1","Score1","team1Score","puntaje1","score equipo 1"]) || 0),
+    team2Score:Number(getCell(r,["score2","Score2","team2Score","puntaje2","score equipo 2"]) || 0),
+    winner:getCell(r,["ganador","Ganador","winner"]),
+    date:getCell(r,["fecha","Fecha","date","Date"])
+  })).filter(x=>x.team1 || x.team2 || x.winner);
 }
 function normalizeAnswerRows(rows){
-  return rows.map(r=>{
-    const rawCorrect = getCell(r,["correcta","correct","correcto"]);
+  return (Array.isArray(rows)?rows:[]).map(r=>{
+    const rawCorrect = getCell(r,["correcta","Correcta","correct","correcto"]);
     return {
-      category:getCell(r,["categoria","categoría","category"]),
-      rule:getCell(r,["regla","rule"]),
-      severity:getCell(r,["severidad","severity"]),
+      category:getCell(r,["categoria","categoría","Categoria","category"]),
+      rule:getCell(r,["regla","Regla","rule"]),
+      severity:getCell(r,["severidad","Severidad","severity"]),
       correct:String(rawCorrect).trim().toLowerCase()==="true" || rawCorrect===true || String(rawCorrect).trim().toLowerCase()==="verdadero" || String(rawCorrect).trim()==="1",
-      date:getCell(r,["fecha","date"])
+      date:getCell(r,["fecha","Fecha","date","Date"])
     };
   }).filter(x=>x.category);
 }
 function getScores(){
-  if(useRemoteData && remoteLoaded){
-    return normalizeIndividualRows(remoteIndividual || []);
-  }
+  if(useRemoteData) return normalizeIndividualRows(remoteIndividual || []);
   try{return JSON.parse(localStorage.getItem("westernRitScores")||"[]")}catch(e){return[]}
 }
 function getTeamScores(){
-  if(useRemoteData && remoteLoaded){
-    return normalizeTeamRows(remoteTeams || []);
-  }
+  if(useRemoteData) return normalizeTeamRows(remoteTeams || []);
   try{return JSON.parse(localStorage.getItem("westernTeamScores")||"[]")}catch(e){return[]}
 }
 function getWrongLogs(){
   try{return JSON.parse(localStorage.getItem("westernWrongLogs")||"[]")}catch(e){return[]}
 }
 function getAnswerLogs(){
-  if(useRemoteData && remoteLoaded){
-    return normalizeAnswerRows(remoteAnswers || []);
-  }
+  if(useRemoteData) return normalizeAnswerRows(remoteAnswers || []);
   try{return JSON.parse(localStorage.getItem("westernAnswerLogs")||"[]")}catch(e){return[]}
 }
 
@@ -693,12 +690,10 @@ function logAnswer(q,ok){
 function renderTopThree(){let s=getScores().slice(0,3);document.getElementById("homeTopThree").innerHTML=s.length?s.map((x,i)=>`<div class="top-three-item"><span>${i+1}. ${x.name}</span><span>${x.score}/${x.max} · ${x.time}</span></div>`).join(""):`<div class="top-three-item"><span>${t("noTop")}</span><span>🤠</span></div>`}
 function renderLeaderboard(){
   let s = getScores();
-
-  // Sort all records from Google Sheets or localStorage
-  s = [...s].sort((a,b) => {
+  s = [...s].sort((a,b)=>{
     const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
     if(scoreDiff !== 0) return scoreDiff;
-    return Number(a.seconds || 999999) - Number(b.seconds || 999999);
+    return String(a.time || "").localeCompare(String(b.time || ""));
   });
 
   const body = document.getElementById("leaderboardBody");
