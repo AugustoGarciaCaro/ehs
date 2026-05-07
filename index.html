@@ -471,26 +471,49 @@ table {
 
 
 /* =========================
-   Subtle language selector ES / EN
+   Safe fixed ES/EN selector
 ========================= */
+@media(min-width:901px){
+  header .nav{
+    display:grid!important;
+    grid-template-columns:auto 1fr 86px!important;
+    align-items:center!important;
+    gap:14px!important;
+  }
+
+  #navButtons{
+    display:flex!important;
+    justify-content:center!important;
+    align-items:center!important;
+    gap:8px!important;
+    flex-wrap:wrap!important;
+  }
+
+  .header-language-buttons{
+    grid-column:3!important;
+    justify-self:end!important;
+  }
+}
+
 .header-language-buttons{
-  display:flex;
-  gap:4px;
-  align-items:center;
-  justify-content:center;
-  flex-wrap:nowrap;
-  padding:4px;
-  border:1px solid rgba(139,69,19,.24);
-  border-radius:999px;
-  background:rgba(255,247,237,.72);
+  width:78px!important;
+  min-width:78px!important;
+  display:flex!important;
+  gap:4px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:4px!important;
+  border:1px solid rgba(139,69,19,.24)!important;
+  border-radius:999px!important;
+  background:rgba(255,247,237,.72)!important;
 }
 
 .header-language-buttons button{
-  min-width:38px!important;
-  width:auto!important;
-  min-height:30px!important;
-  padding:6px 9px!important;
-  font-size:12px!important;
+  min-width:32px!important;
+  width:32px!important;
+  min-height:28px!important;
+  padding:5px 6px!important;
+  font-size:11px!important;
   line-height:1!important;
   border-radius:999px!important;
   box-shadow:none!important;
@@ -510,14 +533,9 @@ table {
 
 @media(max-width:900px){
   .header-language-buttons{
-    display:flex!important;
-    width:auto!important;
-    justify-self:center;
-    grid-template-columns:none!important;
-  }
-  .header-language-buttons button{
-    width:auto!important;
-    min-height:30px!important;
+    width:78px!important;
+    min-width:78px!important;
+    justify-self:center!important;
   }
 }
 
@@ -819,12 +837,26 @@ function sevLabel(s){return currentLang==="en"?(s==="Crítico"?"Critical":s==="A
 function getVisual(k){let p=VISUAL_POOLS[k]||[VISUALS[k]];return p[Math.floor(Math.random()*p.length)]}
 function startTimer(){stopTimer();startTime=Date.now();elapsedSeconds=0;document.getElementById("timerText").textContent="00:00";timerInterval=setInterval(()=>{elapsedSeconds=Math.floor((Date.now()-startTime)/1000);document.getElementById("timerText").textContent=formatTime(elapsedSeconds)},1000)}
 function stopTimer(){if(timerInterval)clearInterval(timerInterval);timerInterval=null;if(startTime)elapsedSeconds=Math.floor((Date.now()-startTime)/1000)}
-function setLanguage(lang){currentLang=lang;console.log("Loaded", CLIENT_VERSION, API_URL);
-applyLanguage();
-refreshRemoteData();
-startAutoRefresh();if(currentQuestions.length&&!document.getElementById("scenarioScreen").classList.contains("hidden"))renderQuestion()}
+function setLanguage(lang){
+  currentLang=lang;
+  applyLanguage();
 
+  if(typeof refreshRemoteData === "function"){
+    refreshRemoteData().catch(err => console.warn("Refresh after language change failed:", err));
+  }
 
+  if(typeof startAutoRefresh === "function") startAutoRefresh();
+
+  const scenario=document.getElementById("scenarioScreen");
+  if(currentQuestions.length && scenario && !scenario.classList.contains("hidden") && typeof renderQuestion === "function"){
+    renderQuestion();
+  }
+
+  if(typeof renderCommitments === "function"){
+    const commitment=document.getElementById("commitmentScreen");
+    if(commitment && !commitment.classList.contains("hidden")) renderCommitments();
+  }
+}
 
 function syncCombinedHRLabels(){
   const map = [
@@ -1206,14 +1238,43 @@ function syncCombinedHRCharts(){
   });
 }
 
-
-function getCommitmentOptions(){
+function getRichCommitmentOptions(){
   return [
-    {es:"Usar correctamente mi EPP", en:"Use my PPE correctly"},
-    {es:"Detener trabajos inseguros", en:"Stop unsafe work"},
-    {es:"Seguir procedimientos sin atajos", en:"Follow procedures without shortcuts"},
-    {es:"Reportar condiciones inseguras", en:"Report unsafe conditions"},
-    {es:"Cuidar a mis compañeros", en:"Take care of my coworkers"}
+    {
+      emoji:"🦺",
+      es:"Usar correctamente mi EPP",
+      en:"Use my PPE correctly",
+      esDesc:"Utilizar mi equipo de protección personal de forma correcta, completa y constante.",
+      enDesc:"Use my personal protective equipment correctly, completely, and consistently."
+    },
+    {
+      emoji:"🛑",
+      es:"Detener trabajos inseguros",
+      en:"Stop unsafe work",
+      esDesc:"Levantar la mano y detener cualquier actividad que pueda poner en riesgo a una persona.",
+      enDesc:"Speak up and stop any activity that could put someone at risk."
+    },
+    {
+      emoji:"📋",
+      es:"Seguir procedimientos sin atajos",
+      en:"Follow procedures without shortcuts",
+      esDesc:"Seguir los procedimientos establecidos, incluso cuando exista presión por terminar rápido.",
+      enDesc:"Follow established procedures, even when there is pressure to finish quickly."
+    },
+    {
+      emoji:"⚠️",
+      es:"Reportar condiciones inseguras",
+      en:"Report unsafe conditions",
+      esDesc:"Reportar condiciones inseguras, derrames, daños o desviaciones antes de que ocurra un incidente.",
+      enDesc:"Report unsafe conditions, spills, damage, or deviations before an incident happens."
+    },
+    {
+      emoji:"🤝",
+      es:"Cuidar a mis compañeros",
+      en:"Take care of my coworkers",
+      esDesc:"Actuar con responsabilidad y cuidado, recordando que la seguridad también es colaboración.",
+      enDesc:"Act responsibly and with care, remembering that safety is also collaboration."
+    }
   ];
 }
 
@@ -1221,59 +1282,18 @@ function renderCommitments(){
   const grid=document.getElementById("commitmentGrid");
   if(!grid) return;
 
-  const options=getCommitmentOptions();
-  grid.innerHTML=options.map(item=>{
-    const text=currentLang==="es"?item.es:item.en;
-    return `<div class="commitment-option" onclick="finishGame('${text.replace(/'/g,"\\'")}')">${text}</div>`;
+  grid.innerHTML=getRichCommitmentOptions().map(item=>{
+    const title=currentLang==="es"?item.es:item.en;
+    const desc=currentLang==="es"?item.esDesc:item.enDesc;
+    const safe=title.replace(/'/g,"\\'");
+    return `<div class="commitment-option" onclick="selectCommitment('${safe}')">
+      <div style="font-size:38px;margin-bottom:10px;">${item.emoji}</div>
+      <h3 style="margin:0 0 8px;color:#7c2d12;">${title}</h3>
+      <p style="margin:0;color:#7c5a3a;font-weight:800;line-height:1.35;">${desc}</p>
+    </div>`;
   }).join("");
 }
-
-
-function getDifficultyLabel(item){
-  const sev=String(item.severity||"").toLowerCase();
-  if(sev.includes("crítico") || sev.includes("critical")) return currentLang==="es" ? "Difícil" : "Hard";
-  if(sev.includes("alto") || sev.includes("high")) return currentLang==="es" ? "Intermedio" : "Medium";
-  return currentLang==="es" ? "Básico" : "Basic";
-}
-
-function cleanScenarioText(title){
-  return String(title || "")
-    .replace(/\s+—\s*Escenario\s*\d+/gi,"")
-    .replace(/\s+—\s*Scenario\s*\d+/gi,"");
-}
-
-function showAllChallenges(){
-  const badge=document.getElementById("genericBadge");
-  const title=document.getElementById("genericTitle");
-  const lead=document.getElementById("genericLead");
-  const content=document.getElementById("genericContent");
-  const nav=document.getElementById("genericNav");
-  const overlay=document.getElementById("genericOverlay");
-
-  if(badge) badge.textContent="🤠";
-  if(title) title.textContent=currentLang==="es" ? "Los 50 retos del viejo oeste" : "The 50 Wild West challenges";
-  if(lead) lead.textContent=currentLang==="es" ? "Explora todos los escenarios disponibles para reforzar las Reglas Cardinales." : "Explore all available scenarios to reinforce the Cardinal Rules.";
-
-  if(content){
-    content.innerHTML=QUESTION_BANK.map((q,i)=>{
-      const lang=q[currentLang] || q.es || q.en || {};
-      const qTitle=cleanScenarioText(lang.title || q.title || "");
-      const diff=getDifficultyLabel(q);
-      return `<div class="detail-item challenge-list-item">
-        <div class="challenge-number">#${i+1}</div>
-        <div>${qTitle}</div>
-        <div class="difficulty-pill">${diff}</div>
-      </div>`;
-    }).join("");
-  }
-
-  if(nav) nav.innerHTML="";
-  if(overlay) overlay.style.display="flex";
-}
-
 function showScreen(s){
-  if(s==="hr") s="leaderboard";
-
   ["home","rules","contribute","scenario","commitment","tournament","leaderboard","hr","final"].forEach(x=>{
     const el=document.getElementById(x+"Screen");
     if(el) el.classList.add("hidden");
@@ -1282,34 +1302,24 @@ function showScreen(s){
   const target=document.getElementById(s+"Screen");
   if(target) target.classList.remove("hidden");
 
-  if(typeof renderMobileMenu === "function") renderMobileMenu();
-
-  if(s==="home" && typeof renderTopThree === "function"){
-    renderTopThree();
-  }
-
-  if(s==="rules" && typeof renderRules === "function"){
-    renderRules();
-  }
-
-  if(s==="contribute" && typeof renderContribute === "function"){
-    renderContribute();
-  }
-
-  if(s==="commitment" && typeof renderCommitments === "function"){
-    renderCommitments();
-  }
+  renderMobileMenu();
 
   if(s==="leaderboard"){
-    if(typeof renderTopThree === "function") renderTopThree();
-    if(typeof renderLeaderboard === "function") renderLeaderboard();
-    if(typeof renderHRBoard === "function") renderHRBoard();
-    if(typeof startAutoRefresh === "function") startAutoRefresh();
+    renderTopThree();
+    renderLeaderboard();
+    renderHRBoard();
+    startAutoRefresh();
   }
+
+  if(s==="hr"){
+    showScreen("leaderboard");
+    return;
+  }
+
+  if(s==="home") renderTopThree();
 
   window.scrollTo({top:0,behavior:"smooth"});
 }
-
 function updateAutoRefreshInfo(){
   const txt = `🔁 ${t("autoRefreshOn")} · ${t("nextRefresh")}: ${autoRefreshCountdown}s`;
   const a = document.getElementById("autoRefreshInfo");
@@ -1539,11 +1549,148 @@ function renderQuestion(){let q=currentQuestions[currentIndex];answered=false;le
 function selectAnswer(btn){if(answered)return;answered=true;let q=currentQuestions[currentIndex],ok=norm(btn.dataset.answer)===norm(local(q,"correct"));logAnswer(q,ok);if(ok){score++;if(tournamentMode){tournamentScores[tournamentTurn]++;document.getElementById("liveTeam1Score").textContent=tournamentScores[0];document.getElementById("liveTeam2Score").textContent=tournamentScores[1]}}document.querySelectorAll(".option").forEach(b=>{if(norm(b.dataset.answer)===norm(local(q,"correct")))b.classList.add("correct");if(b===btn&&!ok)b.classList.add("wrong")});document.getElementById("scoreText").textContent=score;let fb=document.getElementById("feedbackBox");fb.style.display="block";if(ok)fb.classList.add("correct");document.getElementById("feedbackTitle").textContent=ok?(currentLang==="es"?"Bien hecho, vaquero.":"Well done, cowboy."):(currentLang==="es"?"Esa decisión te metería en problemas.":"That decision would get you in trouble.");document.getElementById("feedbackText").innerHTML=`${local(q,"explanation")}<div class="impact"><strong>${t("impact")}</strong> ${local(q,"impact")}</div>`;if(!ok){logWrong(q);let r=qRit(q);if(q.severity==="Crítico")criticalErrors++;setTimeout(()=>showRitOverlay(r),250)}}
 function nextQuestion(){let total=tournamentMode?currentQuestions.length:questionCount;if(tournamentMode){if(currentIndex===total-1){stopTimer();let w=tournamentScores[0]===tournamentScores[1]?(currentLang==="es"?"Empate":"Tie"):(tournamentScores[0]>tournamentScores[1]?tournamentNames[0]:tournamentNames[1]);saveTeamMatch({team1:tournamentNames[0],team2:tournamentNames[1],team1Score:tournamentScores[0],team2Score:tournamentScores[1],winner:w,date:new Date().toLocaleString("es-MX")});let status=document.getElementById("tournamentStatus");status.style.display="block";status.innerHTML=`<h3>🏆 ${t("tournamentResult")}</h3><p>${tournamentNames[0]}: ${tournamentScores[0]} · ${tournamentNames[1]}: ${tournamentScores[1]}</p><p><strong>${t("winner")}:</strong> ${w}</p>`;showScreen("tournament");tournamentMode=false;return}currentIndex++;tournamentTurn=currentIndex%2;renderQuestion();return}if(currentIndex===total-1){stopTimer();showScreen("commitment");return}currentIndex++;renderQuestion()}
 function showRitOverlay(r){document.getElementById("ritBadgeText").textContent=t("ritBadge");document.getElementById("ritStopText").textContent=t("stop");document.getElementById("ritFooterText").textContent=t("ritFooter");document.getElementById("ritContent").innerHTML=`<div class="detail-item"><strong>${t("conduct")}</strong>${r.conducta}</div><div class="detail-item"><strong>${t("sanction")}</strong><span class="sanction">${r.sancion}</span></div><div class="detail-item"><strong>${t("support")}</strong>${r.fundamento}</div>`;document.getElementById("ritOverlay").style.display="flex"}
+function closeGeneric(){
+  const overlay=document.getElementById("genericOverlay");
+  if(overlay) overlay.style.display="none";
+}
 function closeRitOverlay(){document.getElementById("ritOverlay").style.display="none"}
-function selectCommitment(c){selectedCommitment=c;finishGame()}
+function selectCommitment(c){
+  selectedCommitment=c;
+  finishGame();
+}
+
 function bonus(s){return s<=30?2:s<=60?1:0}function badge(percent,total,crit){if(crit>0)return"⚠️ "+(currentLang==="es"?"Riesgo Crítico – No Aprobado":"Critical Risk – Not Approved");if(percent>=90&&total>=6)return"🤠 "+(currentLang==="es"?"Sheriff de Seguridad":"Safety Sheriff");if(percent>=75)return"🐎 "+t("cowboyStrong");return"🪶 "+(currentLang==="es"?"Aprendiz del Oeste":"Old West Apprentice")}
-function finishGame(){let raw=score,max=questionCount,percent=Math.round(raw/max*100),time=formatTime(elapsedSeconds),b=bonus(elapsedSeconds),rank=badge(percent,raw+b,criticalErrors),msg=percent>=90?t("sheriffExpert"):percent>=75?t("cowboyStrong"):t("tryAgain");document.getElementById("finalMessage").textContent=msg;document.getElementById("finalBadge").textContent=rank;document.getElementById("finalLead").textContent=`${participantName}, ${raw}/${max}`;document.getElementById("finalPercent").textContent=percent+"%";document.getElementById("finalScenario").textContent=`${raw}/${max}`;document.getElementById("finalTime").textContent=time;document.getElementById("finalCommitment").innerHTML=`<strong>${t("commitmentChosen")}</strong><br>${selectedCommitment}${criticalErrors>0?`<div class="critical-warning">⚠️ ${criticalErrors} ${t("criticalWarn")}</div>`:""}`;document.getElementById("finalBonus").innerHTML=`<div class="bonus-detail"><div>${t("baseScore")}<br><strong>${raw}/${max}</strong></div><div>${t("bonus")}<br><strong>+${b}</strong></div><div>${t("rankGranted")}<br><strong>${rank}</strong></div></div>`;saveScore({name:participantName,score:raw,max,percent,seconds:elapsedSeconds,time,badge:rank,criticalErrors,commitment:selectedCommitment,date:new Date().toLocaleString("es-MX")});showScreen("final");renderTopThree()}
-applyLanguage();
+function calculateProjectedBoardRank(entry){
+  let board=[];
+  try{
+    board=getScores().map(x=>({...x}));
+  }catch(err){
+    board=[];
+  }
+
+  board.push(entry);
+  board.sort((a,b)=>{
+    const scoreDiff=Number(b.score||0)-Number(a.score||0);
+    if(scoreDiff!==0) return scoreDiff;
+    return Number(a.seconds||999999)-Number(b.seconds||999999);
+  });
+
+  const idx=board.findIndex(x=>
+    x.name===entry.name &&
+    Number(x.score||0)===Number(entry.score||0) &&
+    Number(x.seconds||0)===Number(entry.seconds||0) &&
+    String(x.date||"")===String(entry.date||"")
+  );
+
+  return idx>=0 ? idx+1 : board.length;
+}
+
+function getRankMessage(place){
+  if(currentLang==="es"){
+    if(place===1) return "🥇 ¡Vas en 1er lugar del tablero!";
+    if(place===2) return "🥈 Vas en 2do lugar del tablero.";
+    if(place===3) return "🥉 Vas en 3er lugar del tablero.";
+    return `🏆 Vas en el lugar #${place} del tablero.`;
+  }
+  if(place===1) return "🥇 You are in 1st place on the board!";
+  if(place===2) return "🥈 You are in 2nd place on the board.";
+  if(place===3) return "🥉 You are in 3rd place on the board.";
+  return `🏆 You are in place #${place} on the board.`;
+}
+function finishGame(){
+  let raw=score;
+  let max=questionCount;
+  let percent=Math.round(raw/max*100);
+  let time=formatTime(elapsedSeconds);
+  let b=bonus(elapsedSeconds);
+  let rank=badge(percent,raw+b,criticalErrors);
+  let msg=percent>=90?t("sheriffExpert"):percent>=75?t("cowboyStrong"):t("tryAgain");
+
+  const entry={
+    name:participantName,
+    score:raw,
+    max,
+    percent,
+    seconds:elapsedSeconds,
+    time,
+    badge:rank,
+    criticalErrors,
+    commitment:selectedCommitment,
+    date:new Date().toLocaleString("es-MX")
+  };
+
+  const boardPlace=calculateProjectedBoardRank(entry);
+
+  document.getElementById("finalMessage").textContent=msg;
+  document.getElementById("finalBadge").textContent=rank;
+  document.getElementById("finalLead").textContent=`${participantName}, ${raw}/${max} · ${getRankMessage(boardPlace)}`;
+  document.getElementById("finalPercent").textContent=percent+"%";
+  document.getElementById("finalScenario").textContent=`#${boardPlace}`;
+  document.getElementById("finalTime").textContent=time;
+
+  const rankingLabel=currentLang==="es"?"Lugar en tablero":"Board ranking";
+  const duelLabel=document.getElementById("duelsWonLabel");
+  if(duelLabel) duelLabel.textContent=rankingLabel;
+
+  document.getElementById("finalCommitment").innerHTML=`<strong>${t("commitmentChosen")}</strong><br>${selectedCommitment}${criticalErrors>0?`<div class="critical-warning">⚠️ ${criticalErrors} ${t("criticalWarn")}</div>`:""}`;
+
+  document.getElementById("finalBonus").innerHTML=`<div class="bonus-detail"><div>${t("baseScore")}<br><strong>${raw}/${max}</strong></div><div>${t("bonus")}<br><strong>+${b}</strong></div><div>${rankingLabel}<br><strong>#${boardPlace}</strong></div></div>`;
+
+  saveScore(entry);
+  showScreen("final");
+  renderTopThree();
+}
+
+/* =========================
+   Safe initial render
+========================= */
+function initializeApp(){
+  try{
+    console.log("Loaded", CLIENT_VERSION, API_URL);
+
+    if(typeof applyLanguage === "function") applyLanguage();
+    if(typeof renderTopThree === "function") renderTopThree();
+
+    // Cargar datos remotos después del primer render para no dejar la pantalla vacía.
+    if(typeof refreshRemoteData === "function"){
+      refreshRemoteData()
+        .then(() => {
+          if(typeof renderTopThree === "function") renderTopThree();
+          if(typeof renderLeaderboard === "function") renderLeaderboard();
+          if(typeof renderHRBoard === "function") renderHRBoard();
+        })
+        .catch(err => console.warn("Initial remote refresh failed:", err));
+    }
+
+    if(typeof startAutoRefresh === "function") startAutoRefresh();
+
+    if(currentQuestions.length){
+      const scenario=document.getElementById("scenarioScreen");
+      if(scenario && !scenario.classList.contains("hidden") && typeof renderQuestion === "function"){
+        renderQuestion();
+      }
+    }
+  }catch(error){
+    console.error("Initial render failed:", error);
+  }
+}
+
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", initializeApp);
+}else{
+  initializeApp();
+}
+
+window.addEventListener("load", () => {
+  const home=document.getElementById("homeScreen");
+  const mainTitle=document.getElementById("mainTitle");
+
+  // Fallback: si por algún motivo no se llenó el texto, reintenta el render.
+  if(home && mainTitle && !String(mainTitle.textContent || "").trim()){
+    initializeApp();
+  }
+});
+
 </script>
 
 <footer class="site-footer">
