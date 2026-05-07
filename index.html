@@ -440,12 +440,49 @@ table {
   color: #7c5a3a!important;
 }
 
+
+/* =========================
+   Header Language Selector
+========================= */
+.header-language{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:rgba(255,237,213,.9);
+  border:2px solid rgba(139,69,19,.25);
+  border-radius:999px;
+  padding:5px;
+  box-shadow:0 8px 18px rgba(80,43,15,.10);
+}
+
+.header-language button{
+  min-width:52px;
+  padding:9px 12px;
+  font-size:13px;
+  border-radius:999px;
+}
+
+@media(max-width:900px){
+  .header-language{
+    justify-content:center!important;
+    width:100%;
+    max-width:220px;
+    margin:0 auto;
+  }
+
+  .header-language button{
+    width:50%!important;
+    min-height:42px!important;
+    padding:9px 10px!important;
+  }
+}
+
 </style>
 </head>
 <body>
-<header><div class="nav"><div class="brand"><div class="star">⭐</div><div>Reglas Cardinales del Viejo Oeste<small id="brandSub"></small></div></div><div id="navButtons"></div><div class="mobile-menu-wrap"><select id="mobileMenuSelect" class="mobile-menu-select" onchange="handleMobileMenuChange(this.value)"></select></div></div></header>
+<header><div class="nav"><div class="brand"><div class="star">⭐</div><div>Reglas Cardinales del Viejo Oeste<small id="brandSub"></small></div></div><div id="headerLanguage" class="header-language"><button id="btnLangEs" onclick="setLanguage('es')">ES</button><button id="btnLangEn" onclick="setLanguage('en')">EN</button></div><div id="navButtons"></div><div class="mobile-menu-wrap"><select id="mobileMenuSelect" class="mobile-menu-select" onchange="handleMobileMenuChange(this.value)"></select></div></div></header>
 <main class="container">
-<section id="homeScreen"><div class="hero"><div><div id="badgeHome" class="badge"></div><h1 id="mainTitle"></h1><p id="intro" class="lead"></p><div class="name-box language-buttons"><button id="btnLangEs" onclick="setLanguage('es')">Español</button><button id="btnLangEn" onclick="setLanguage('en')">English</button></div><div class="name-box"><input id="participantName" maxlength="40"><button id="startBtn" class="btn-primary" onclick="startGame()"></button><div id="nameError" class="name-error"></div></div><button id="viewRulesBtn" class="btn-secondary" onclick="showScreen('rules')"></button> <button id="contributeBtnHome" class="btn-secondary" onclick="showScreen('contribute')"></button> <button id="homeTournamentBtn" class="btn-secondary" onclick="showScreen('tournament')"></button> <button id="homeRecognitionBtn" class="btn-secondary" onclick="openRecognitionModal()"></button></div><div class="card"><div class="card-content"><div class="stats"><div class="stat">⭐<strong>5</strong><span id="statRules"></span></div><div class="stat">🎯<strong>5</strong><span id="statQuestions"></span></div><div class="stat challenge-stat" onclick="showAllChallenges()">🤠<strong id="totalChallenges">50</strong><span id="totalChallengesLabel"></span><br><small id="totalChallengesHint"></small></div></div><div class="how"><h3 id="howTitle"></h3><div id="howList"></div></div><div class="top-three"><h3 id="top3Title"></h3><div id="homeTopThree"></div></div></div></div></div></section>
+<section id="homeScreen"><div class="hero"><div><div id="badgeHome" class="badge"></div><h1 id="mainTitle"></h1><p id="intro" class="lead"></p><div class="name-box"><input id="participantName" maxlength="40"><button id="startBtn" class="btn-primary" onclick="startGame()"></button><div id="nameError" class="name-error"></div></div><button id="viewRulesBtn" class="btn-secondary" onclick="showScreen('rules')"></button> <button id="contributeBtnHome" class="btn-secondary" onclick="showScreen('contribute')"></button> <button id="homeTournamentBtn" class="btn-secondary" onclick="showScreen('tournament')"></button> <button id="homeRecognitionBtn" class="btn-secondary" onclick="openRecognitionModal()"></button></div><div class="card"><div class="card-content"><div class="stats"><div class="stat">⭐<strong>5</strong><span id="statRules"></span></div><div class="stat">🎯<strong>5</strong><span id="statQuestions"></span></div><div class="stat challenge-stat" onclick="showAllChallenges()">🤠<strong id="totalChallenges">50</strong><span id="totalChallengesLabel"></span><br><small id="totalChallengesHint"></small></div></div><div class="how"><h3 id="howTitle"></h3><div id="howList"></div></div><div class="top-three"><h3 id="top3Title"></h3><div id="homeTopThree"></div></div></div></div></div></section>
 <section id="rulesScreen" class="hidden"><div class="center"><div class="badge">📜</div><h2 id="rulesTitle"></h2><p id="rulesLead" class="lead"></p></div><div id="rulesGrid" class="grid"></div></section>
 <section id="contributeScreen" class="hidden"><div class="center"><div class="badge">🤠</div><h2 id="contributeTitle"></h2><p id="contributeLead" class="lead"></p></div><div id="contributeGrid" class="grid"></div></section>
 <section id="scenarioScreen" class="hidden"><div class="game-top"><div><strong id="gameLabel"></strong><h2 id="questionCounter"></h2></div><div><span class="metric">🏆 <span id="rewardLabel"></span>: <span id="scoreText">0</span></span> <span class="metric timer">⏱️ <span id="timerText">00:00</span></span></div></div><div id="turnBanner" class="turn-banner"><small id="turnBannerLabel"></small><strong id="turnBannerName"></strong><div style="margin-top:10px;font-size:20px"><span id="liveTeam1"></span> <strong id="liveTeam1Score">0</strong> · <span id="liveTeam2"></span> <strong id="liveTeam2Score">0</strong></div></div><div class="progress-wrap"><div id="progressBar" class="progress"></div></div><div class="card"><div class="card-content"><div id="severityBox"></div><div id="visualBox" class="visual"></div><h3 id="scenarioTitle"></h3><p id="scenarioText" class="lead"></p><div id="optionsBox" class="options"></div><div id="feedbackBox" class="feedback"><h3 id="feedbackTitle"></h3><p id="feedbackText"></p><button id="nextBtn" class="btn-primary" onclick="nextQuestion()"></button></div></div></div></section>
@@ -717,7 +754,8 @@ async function refreshRemoteData(){
   renderTopThree();
   if(!document.getElementById("leaderboardScreen").classList.contains("hidden")) renderLeaderboard();
   if(!document.getElementById("hrScreen").classList.contains("hidden")) renderHRBoard();
-  syncCombinedHRCharts();
+  renderCombinedHRBoard();
+  renderCombinedHRBoard();
 
   const stamp = new Date().toLocaleTimeString("es-MX");
   const status = document.getElementById("refreshStatus");
@@ -756,6 +794,93 @@ function syncCombinedHRLabels(){
     const el = document.getElementById(target);
     if(el) el.textContent = t(key);
   });
+}
+
+
+function syncCombinedHRLabels(){
+  const map = [
+    ["hrBoardTitleCombined","hrBoardTitle"],
+    ["hrBoardLeadCombined","hrBoardLead"],
+    ["accuracyTitleCombined","accuracyTitle"],
+    ["opportunityTitleCombined","opportunityTitle"]
+  ];
+
+  map.forEach(([target,key]) => {
+    const el = document.getElementById(target);
+    if(el) el.textContent = t(key);
+  });
+}
+
+function buildHRRowsHtml(type){
+  const data = getHRTopicStats();
+  if(!data || !data.length){
+    return `<div class="detail-item">${t("noRecords") || "Aún no hay registros."}</div>`;
+  }
+
+  const sorted = data
+    .slice()
+    .sort((a,b) => {
+      if(type === "accuracy") return b.accuracy - a.accuracy;
+      return b.opportunity - a.opportunity;
+    });
+
+  return sorted.map(item => {
+    const value = type === "accuracy" ? item.accuracy : item.opportunity;
+    const barClass = type === "accuracy" ? "hr-bar" : "hr-bar opportunity";
+    return `
+      <div class="hr-chart-row">
+        <div class="hr-chart-label">${item.topic}</div>
+        <div class="hr-bar-track">
+          <div class="${barClass}" style="width:${Math.max(0, Math.min(100, value))}%"></div>
+        </div>
+        <div class="hr-chart-value">${value}%</div>
+      </div>
+    `;
+  }).join("");
+}
+
+
+function getHRTopicStats(){
+  const rows = (window.remoteRespuestas || window.remoteResponses || (window.remoteData && window.remoteData.responseRows) || (window.remoteData && window.remoteData.respuestasRows) || []);
+  const source = Array.isArray(rows) && rows.length ? rows : JSON.parse(localStorage.getItem("cardinalResponses") || "[]");
+
+  const bucket = {};
+
+  source.forEach(r => {
+    const topic = r.category || r.categoria || r.Category || r.tema || r.rule || r.Regla || r.ruleName || "General";
+    const correctRaw = r.correct ?? r.Correct ?? r.correcta ?? r.Correcta;
+    const isCorrect = correctRaw === true || String(correctRaw).toLowerCase() === "true" || String(correctRaw).toLowerCase() === "verdadero" || String(correctRaw) === "1";
+
+    if(!bucket[topic]){
+      bucket[topic] = { topic, total:0, correct:0, incorrect:0 };
+    }
+
+    bucket[topic].total++;
+    if(isCorrect) bucket[topic].correct++;
+    else bucket[topic].incorrect++;
+  });
+
+  return Object.values(bucket).map(item => {
+    const accuracy = item.total ? Math.round((item.correct / item.total) * 100) : 0;
+    return {
+      topic: item.topic,
+      total: item.total,
+      correct: item.correct,
+      incorrect: item.incorrect,
+      accuracy,
+      opportunity: 100 - accuracy
+    };
+  });
+}
+
+function renderCombinedHRBoard(){
+  syncCombinedHRLabels();
+
+  const accuracy = document.getElementById("accuracyChartCombined");
+  const opportunity = document.getElementById("opportunityChartCombined");
+
+  if(accuracy) accuracy.innerHTML = buildHRRowsHtml("accuracy");
+  if(opportunity) opportunity.innerHTML = buildHRRowsHtml("opportunity");
 }
 
 function getMobileMenuOptions(){
@@ -937,7 +1062,8 @@ function applyLanguage(){
   renderTopThree();
   if(!document.getElementById("leaderboardScreen").classList.contains("hidden")) renderLeaderboard();
   if(!document.getElementById("hrScreen").classList.contains("hidden")) renderHRBoard();
-  syncCombinedHRCharts(); if(typeof refreshPlayModalTexts==="function") refreshPlayModalTexts();
+  renderCombinedHRBoard();
+  renderCombinedHRBoard(); if(typeof refreshPlayModalTexts==="function") refreshPlayModalTexts();
 }
 
 function showModalNameStep(){
@@ -1127,7 +1253,8 @@ function syncCombinedHRCharts(){
 
 function showScreen(s){["home","rules","contribute","scenario","commitment","tournament","leaderboard","hr","final"].forEach(x=>document.getElementById(x+"Screen").classList.add("hidden"));document.getElementById(s+"Screen").classList.remove("hidden");renderMobileMenu();
   if(s==="leaderboard"){renderLeaderboard();startAutoRefresh();}if(s==="hr"){renderHRBoard();
-  syncCombinedHRCharts();startAutoRefresh();}if(s==="home")renderTopThree();window.scrollTo({top:0,behavior:"smooth"})}
+  renderCombinedHRBoard();
+  renderCombinedHRBoard();startAutoRefresh();}if(s==="home")renderTopThree();window.scrollTo({top:0,behavior:"smooth"})}
 function renderRules(){document.getElementById("rulesGrid").innerHTML=t("rules").map((r,i)=>`<div class="info-card rule-click" onclick="openRule(${i})"><strong>⭐ ${r[0]}</strong><br>${r[1]}<br><br><small><strong>${t("clickRule")}</strong></small></div>`).join("")}
 function renderContributions(){document.getElementById("contributeGrid").innerHTML=t("contributions").map((c,i)=>`<button class="commitment-option" onclick="openContribution(${i})"><strong>${c[0]}</strong><br>${c[1]}</button>`).join("")}
 function renderCommitment(){document.getElementById("commitmentGrid").innerHTML=t("contributions").slice(0,4).map(c=>`<button class="commitment-option" onclick="selectCommitment('${c[2].replace(/'/g,"\\'")}')"><strong>${c[0]}</strong><br>${c[1]}</button>`).join("")}
@@ -1328,7 +1455,8 @@ function renderLeaderboard(){
 }
 function renderHRBoard(){let at=document.getElementById("accuracyTitle");if(at)at.textContent=t("accuracyTitle");let ot=document.getElementById("opportunityTitle");if(ot)ot.textContent=t("opportunityTitle");let logs=getAnswerLogs(),agg={};logs.forEach(x=>{let k=x.category;agg[k]=agg[k]||{total:0,correct:0};agg[k].total++;if(x.correct)agg[k].correct++});let arr=Object.entries(agg).map(([topic,v])=>{let acc=v.total?Math.round(v.correct/v.total*100):0;return{topic,total:v.total,correct:v.correct,accuracy:acc,opportunity:100-acc}});let render=(data,type)=>data.length?data.map(x=>{let val=type==="accuracy"?x.accuracy:x.opportunity;return`<div class="hr-chart-row"><div class="hr-chart-label">${x.topic}<br><small>${t("totalAnswers")}: ${x.total}</small></div><div class="hr-bar-track"><div class="hr-bar ${type==="opportunity"?"opportunity":""}" style="width:${val}%"></div></div><div class="hr-chart-value">${val}%<br><small>${x.correct}/${x.total}</small></div></div>`}).join(""):`<div class="detail-item center">${t("noRegistered")}</div>`;let a=[...arr].sort((x,y)=>y.accuracy-x.accuracy||y.total-x.total),o=[...arr].sort((x,y)=>y.opportunity-x.opportunity||y.total-x.total);let ac=document.getElementById("accuracyChart"),op=document.getElementById("opportunityChart");if(ac)ac.innerHTML=render(a,"accuracy");if(op)op.innerHTML=render(o,"opportunity")}
 function clearLeaderboard(){if(confirm(currentLang==="es"?"¿Seguro que deseas borrar tableros y datos RH?":"Clear boards and HR data?")){localStorage.removeItem("westernRitScores");localStorage.removeItem("westernTeamScores");localStorage.removeItem("westernWrongLogs");localStorage.removeItem("westernAnswerLogs");renderLeaderboard();renderHRBoard();
-  syncCombinedHRCharts();renderTopThree()}}
+  renderCombinedHRBoard();
+  renderCombinedHRBoard();renderTopThree()}}
 function startGame(){let input=document.getElementById("participantName"),err=document.getElementById("nameError");if(!input.value.trim()){err.style.display="block";input.focus();return}err.style.display="none";participantName=input.value.trim();currentQuestions=shuffle(QUESTION_BANK).slice(0,questionCount).map(q=>({...q,opts:shuffle(local(q,"options"))}));currentIndex=0;score=0;answered=false;selectedCommitment="";criticalErrors=0;ritErrors=[];tournamentMode=false;showScreen("scenario");startTimer();renderQuestion()}
 function startTournament(){let a=document.getElementById("team1Name").value.trim()||t("team1"),b=document.getElementById("team2Name").value.trim()||t("team2");tournamentMode=true;tournamentTurn=0;tournamentScores=[0,0];tournamentNames=[a,b];document.getElementById("team1ScoreLabel").textContent=a;document.getElementById("team2ScoreLabel").textContent=b;document.getElementById("team1Score").textContent="0";document.getElementById("team2Score").textContent="0";currentQuestions=shuffle(QUESTION_BANK).sort((x,y)=>(x.severity==="Medio"?1:x.severity==="Alto"?2:3)-(y.severity==="Medio"?1:y.severity==="Alto"?2:3)).slice(0,10).map(q=>({...q,opts:shuffle(local(q,"options"))}));currentIndex=0;score=0;answered=false;participantName=a+" vs "+b;showScreen("scenario");startTimer();renderQuestion()}
 function renderQuestion(){let q=currentQuestions[currentIndex];answered=false;let total=tournamentMode?currentQuestions.length:questionCount;document.getElementById("questionCounter").textContent=tournamentMode?`${t("question")} ${currentIndex+1} / ${total} · ${tournamentNames[tournamentTurn]}`:`${t("question")} ${currentIndex+1} de ${total}`;document.getElementById("scoreText").textContent=score;document.getElementById("progressBar").style.width=((currentIndex+1)/total*100)+"%";let sev=q.severity,sevClass=sev==="Crítico"?"sev-critico":sev==="Alto"?"sev-alto":"sev-medio";document.getElementById("severityBox").innerHTML=`<div class="severity ${sevClass}">⚠️ ${t("risk")} ${sevLabel(sev)}</div><span class="difficulty-pill">${difficulty(q)}</span>`;let v=getVisual(q.visual);document.getElementById("visualBox").innerHTML=`<div class="visual-main" style="background-image:url('${v[2]}')"></div><div class="visual-label"><small>${t("postcard")}</small><strong>${v[0]}</strong></div><div class="visual-tag">${v[1]}</div>`;document.getElementById("scenarioTitle").textContent=local(q,"title");document.getElementById("scenarioText").textContent=local(q,"text");document.getElementById("optionsBox").innerHTML=q.opts.map((o,i)=>`<button class="option" data-answer="${o.replace(/"/g,"&quot;")}" onclick="selectAnswer(this)"><small>${t("answer")} ${i+1}:</small><strong>${o}</strong></button>`).join("");let fb=document.getElementById("feedbackBox");fb.style.display="none";fb.classList.remove("correct");document.getElementById("nextBtn").textContent=currentIndex===total-1?(tournamentMode?t("navTournament"):t("oath")):t("next");let banner=document.getElementById("turnBanner");banner.style.display=tournamentMode?"block":"none";if(tournamentMode){document.getElementById("turnBannerName").textContent=tournamentNames[tournamentTurn];document.getElementById("liveTeam1").textContent=tournamentNames[0];document.getElementById("liveTeam2").textContent=tournamentNames[1];document.getElementById("liveTeam1Score").textContent=tournamentScores[0];document.getElementById("liveTeam2Score").textContent=tournamentScores[1]}}
