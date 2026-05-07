@@ -355,7 +355,6 @@ table {
 }
 
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 <header><div class="nav"><div class="brand"><div class="star">⭐</div><div>Reglas Cardinales del Viejo Oeste<small id="brandSub"></small></div></div><div id="navButtons"></div></div></header>
@@ -511,6 +510,7 @@ let currentLang="es",currentQuestions=[],currentIndex=0,score=0,answered=false,p
 const questionCount=5;
 
 const API_URL = "https://script.google.com/macros/s/AKfycbzeyXRlRtUZP-CniA_jyh6M4NNF46V_q0GpJE9Cai3N0NXOCqJk44UFSZZqFRVEUSE/exec";
+const CLIENT_VERSION = "HTML_JPEG_ONLY_V2";
 const GOOGLE_SHEET_ID = "1TIT_32EnO8rP3jFUhyPnpfQ3hhdONvQhTjQW7UyB8Ew";
 let remoteIndividual = [];
 let remoteTeams = [];
@@ -631,7 +631,8 @@ function sevLabel(s){return currentLang==="en"?(s==="Crítico"?"Critical":s==="A
 function getVisual(k){let p=VISUAL_POOLS[k]||[VISUALS[k]];return p[Math.floor(Math.random()*p.length)]}
 function startTimer(){stopTimer();startTime=Date.now();elapsedSeconds=0;document.getElementById("timerText").textContent="00:00";timerInterval=setInterval(()=>{elapsedSeconds=Math.floor((Date.now()-startTime)/1000);document.getElementById("timerText").textContent=formatTime(elapsedSeconds)},1000)}
 function stopTimer(){if(timerInterval)clearInterval(timerInterval);timerInterval=null;if(startTime)elapsedSeconds=Math.floor((Date.now()-startTime)/1000)}
-function setLanguage(lang){currentLang=lang;applyLanguage();
+function setLanguage(lang){currentLang=lang;console.log("Loaded", CLIENT_VERSION, API_URL);
+applyLanguage();
 refreshRemoteData();
 startAutoRefresh();if(currentQuestions.length&&!document.getElementById("scenarioScreen").classList.contains("hidden"))renderQuestion()}
 
@@ -842,52 +843,19 @@ function closeRecognitionModal(){
 function isValidEmail(email){
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
 }
-function createRecognitionPDF(name){
-  const jsPDF = window.jspdf && window.jspdf.jsPDF;
-  if(!jsPDF){
-    alert("No se pudo cargar la librería PDF. Revisa conexión a internet.");
-    return null;
-  }
-
-  const doc = new jsPDF({orientation:"landscape", unit:"pt", format:"letter", compress:true});
-  const w = doc.internal.pageSize.getWidth();
-  const h = doc.internal.pageSize.getHeight();
-
-  if(typeof CERTIFICATE_TEMPLATE_IMAGE !== "undefined" && CERTIFICATE_TEMPLATE_IMAGE){
-    doc.addImage(CERTIFICATE_TEMPLATE_IMAGE, "JPEG", 0, 0, w, h);
-  } else {
-    doc.setFillColor(255,247,237);
-    doc.rect(0,0,w,h,"F");
-  }
-
-  const displayName = String(name || "").trim().toUpperCase();
-
-  let fontSize = 34;
-  if(displayName.length > 24) fontSize = 30;
-  if(displayName.length > 32) fontSize = 26;
-  if(displayName.length > 40) fontSize = 22;
-  if(displayName.length > 50) fontSize = 18;
-
-  doc.setFont("times", "bold");
-  doc.setFontSize(fontSize);
-  doc.setTextColor(59, 29, 11);
-  doc.text(displayName, w / 2, 364, { align: "center", maxWidth: w - 180 });
-
-  return doc;
-}
-function downloadRecognitionPDF(doc, name){
-  const safeName = String(name).trim().replace(/[^\w\sáéíóúÁÉÍÓÚñÑ-]/g,"").replace(/\s+/g,"_");
-  doc.save(`Reconocimiento_Reglas_Cardinales_${safeName}.pdf`);
-}
 function sendRecognitionByEmail(name, email){
+  const safeName = String(name)
+    .trim()
+    .replace(/[^\w\sáéíóúÁÉÍÓÚñÑ-]/g,"")
+    .replace(/\s+/g,"_");
+
   return postToSheet({
     type: "reconocimiento",
+    version: CLIENT_VERSION,
+    requestedFormat: "jpg",
     name,
     email,
-    filename: `Reconocimiento_Reglas_Cardinales_${String(name)
-      .trim()
-      .replace(/[^\w\sáéíóúÁÉÍÓÚñÑ-]/g,"")
-      .replace(/\s+/g,"_")}.jpg`
+    filename: `Reconocimiento_Reglas_Cardinales_${safeName}_JPEG_V1.jpg`
   });
 }
 
@@ -913,17 +881,25 @@ async function generateRecognitionAndEmail(){
 
   if(err) err.style.display = "none";
   if(status){
-    status.textContent = t("recognitionSending") || "Enviando solicitud...";
+    status.textContent = "Enviando solicitud JPG... " + CLIENT_VERSION;
     status.style.display = "block";
   }
 
   if(btn) btn.disabled = true;
 
   try {
+    console.log("Sending recognition payload", {
+      type: "reconocimiento",
+      version: CLIENT_VERSION,
+      requestedFormat: "jpg",
+      name,
+      email
+    });
+
     await sendRecognitionByEmail(name, email);
 
     if(status){
-      status.textContent = t("recognitionReady") || "Solicitud enviada. El correo puede tardar unos segundos en llegar.";
+      status.textContent = "Solicitud enviada como JPG. Versión: " + CLIENT_VERSION;
       status.style.display = "block";
     }
   } catch(error){
@@ -1167,7 +1143,7 @@ applyLanguage();
 
 <footer class="site-footer">
   © 2026 MBA Augusto Garcia, Recursos Humanos, ICU Medical de Mexico.
-  <small>EHS Safety Fair 2026 · Reglas Cardinales del Viejo Oeste</small>
+  <small>EHS Safety Fair 2026 · Reglas Cardinales del Viejo Oeste · HTML_JPEG_ONLY_V2</small>
 </footer>
 
 </body>
