@@ -539,10 +539,66 @@ table {
   }
 }
 
+
+/* =========================
+   Fixed language selector outside menu
+========================= */
+.fixed-language-buttons{
+  position:fixed;
+  top:12px;
+  right:14px;
+  z-index:9999;
+  display:flex;
+  gap:4px;
+  align-items:center;
+  justify-content:center;
+  padding:4px;
+  border:1px solid rgba(139,69,19,.22);
+  border-radius:999px;
+  background:rgba(255,247,237,.88);
+  backdrop-filter:blur(8px);
+  box-shadow:0 8px 20px rgba(80,43,15,.10);
+}
+
+.fixed-language-buttons button{
+  min-width:34px!important;
+  width:34px!important;
+  min-height:28px!important;
+  padding:5px 6px!important;
+  font-size:11px!important;
+  line-height:1!important;
+  border-radius:999px!important;
+  box-shadow:none!important;
+  font-weight:950!important;
+}
+
+.fixed-language-buttons .lang-active{
+  background:linear-gradient(135deg,#7c2d12,#d97706)!important;
+  color:#fff7ed!important;
+  border-color:#f2c078!important;
+}
+
+.fixed-language-buttons .lang-inactive{
+  background:transparent!important;
+  color:#7c5a3a!important;
+  border-color:transparent!important;
+}
+
+@media(max-width:600px){
+  .fixed-language-buttons{
+    top:8px;
+    right:8px;
+  }
+}
+
 </style>
 </head>
 <body>
-<header><div class="nav"><div class="brand"><div class="star">⭐</div><div>Reglas Cardinales del Viejo Oeste<small id="brandSub"></small></div></div><div id="navButtons"></div><div id="headerLangButtons" class="header-language-buttons language-buttons"><button id="btnLangEs" onclick="setLanguage('es')">ES</button><button id="btnLangEn" onclick="setLanguage('en')">EN</button></div><div class="mobile-menu-wrap"><select id="mobileMenuSelect" class="mobile-menu-select" onchange="handleMobileMenuChange(this.value)"></select></div></div></header>
+<div id="fixedLangButtons" class="fixed-language-buttons">
+  <button id="btnLangEs" onclick="setLanguage('es')" aria-label="Español">ES</button>
+  <button id="btnLangEn" onclick="setLanguage('en')" aria-label="English">EN</button>
+</div>
+<header><div class="nav"><div class="brand"><div class="star">⭐</div><div>Reglas Cardinales del Viejo Oeste<small id="brandSub"></small></div></div><div id="navButtons"></div><div class="mobile-menu-wrap"><select id="mobileMenuSelect" class="mobile-menu-select" onchange="handleMobileMenuChange(this.value)"></select></div></div></header>
 <main class="container">
 <section id="homeScreen"><div class="hero"><div><div id="badgeHome" class="badge"></div><h1 id="mainTitle"></h1><p id="intro" class="lead"></p><div class="name-box"><input id="participantName" maxlength="40"><button id="startBtn" class="btn-primary" onclick="startGame()"></button><div id="nameError" class="name-error"></div></div><button id="viewRulesBtn" class="btn-secondary" onclick="showScreen('rules')"></button> <button id="contributeBtnHome" class="btn-secondary" onclick="showScreen('contribute')"></button> <button id="homeTournamentBtn" class="btn-secondary" onclick="showScreen('tournament')"></button> <button id="homeRecognitionBtn" class="btn-secondary" onclick="openRecognitionModal()"></button></div><div class="card"><div class="card-content"><div class="stats"><div class="stat">⭐<strong>5</strong><span id="statRules"></span></div><div class="stat">🎯<strong>5</strong><span id="statQuestions"></span></div><div class="stat challenge-stat" onclick="showAllChallenges()">🤠<strong id="totalChallenges">50</strong><span id="totalChallengesLabel"></span><br><small id="totalChallengesHint"></small></div></div><div class="how"><h3 id="howTitle"></h3><div id="howList"></div></div><div class="top-three"><h3 id="top3Title"></h3><div id="homeTopThree"></div></div></div></div></div></section>
 <section id="rulesScreen" class="hidden"><div class="center"><div class="badge">📜</div><h2 id="rulesTitle"></h2><p id="rulesLead" class="lead"></p></div><div id="rulesGrid" class="grid"></div></section>
@@ -841,6 +897,21 @@ function setLanguage(lang){
   currentLang=lang;
   applyLanguage();
 
+  const rules=document.getElementById("rulesScreen");
+  if(rules && !rules.classList.contains("hidden") && typeof renderRules === "function") renderRules();
+
+  const contribute=document.getElementById("contributeScreen");
+  if(contribute && !contribute.classList.contains("hidden") && typeof renderContribute === "function") renderContribute();
+
+  const commitment=document.getElementById("commitmentScreen");
+  if(commitment && !commitment.classList.contains("hidden") && typeof renderCommitments === "function") renderCommitments();
+
+  const leaderboard=document.getElementById("leaderboardScreen");
+  if(leaderboard && !leaderboard.classList.contains("hidden")){
+    if(typeof renderLeaderboard === "function") renderLeaderboard();
+    if(typeof renderHRBoard === "function") renderHRBoard();
+  }
+
   if(typeof refreshRemoteData === "function"){
     refreshRemoteData().catch(err => console.warn("Refresh after language change failed:", err));
   }
@@ -850,11 +921,6 @@ function setLanguage(lang){
   const scenario=document.getElementById("scenarioScreen");
   if(currentQuestions.length && scenario && !scenario.classList.contains("hidden") && typeof renderQuestion === "function"){
     renderQuestion();
-  }
-
-  if(typeof renderCommitments === "function"){
-    const commitment=document.getElementById("commitmentScreen");
-    if(commitment && !commitment.classList.contains("hidden")) renderCommitments();
   }
 }
 
@@ -1287,13 +1353,130 @@ function renderCommitments(){
     const desc=currentLang==="es"?item.esDesc:item.enDesc;
     const safe=title.replace(/'/g,"\\'");
     return `<div class="commitment-option" onclick="selectCommitment('${safe}')">
+      <div style="font-size:40px;margin-bottom:10px;">${item.emoji}</div>
+      <h3 style="margin:0 0 8px;color:#7c2d12;">${title}</h3>
+      <p style="margin:0;color:#7c5a3a;font-weight:800;line-height:1.35;">${desc}</p>
+    </div>`;
+  }).join("");
+}
+
+function renderCommitments(){
+  const grid=document.getElementById("commitmentGrid");
+  if(!grid) return;
+
+  grid.innerHTML=getRichCommitmentOptions().map(item=>{
+    const title=currentLang==="es"?item.es:item.en;
+    const desc=currentLang==="es"?item.esDesc:item.enDesc;
+    const safe=title.replace(/'/g,"\\'");
+    return `<div class="commitment-option" onclick="selectCommitment('${safe}')">
       <div style="font-size:38px;margin-bottom:10px;">${item.emoji}</div>
       <h3 style="margin:0 0 8px;color:#7c2d12;">${title}</h3>
       <p style="margin:0;color:#7c5a3a;font-weight:800;line-height:1.35;">${desc}</p>
     </div>`;
   }).join("");
 }
+function escapeAttrText(value){
+  return String(value || "")
+    .replace(/&/g,"&amp;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
+}
+
+function renderRules(){
+  const grid=document.getElementById("rulesGrid");
+  if(!grid) return;
+
+  const rules=t("rules") || [];
+  grid.innerHTML=rules.map((item,index)=>{
+    const title=item[0] || "";
+    const desc=item[1] || "";
+    return `<div class="info-card rule-click" onclick="showRuleDetail(${index})">
+      <div class="badge">#${index+1}</div>
+      <h3>${title}</h3>
+      <p>${desc}</p>
+      <small>${t("clickRule") || ""}</small>
+    </div>`;
+  }).join("");
+}
+
+function showRuleDetail(index){
+  const rules=t("rules") || [];
+  const item=rules[index];
+  if(!item) return;
+
+  const badge=document.getElementById("genericBadge");
+  const title=document.getElementById("genericTitle");
+  const lead=document.getElementById("genericLead");
+  const content=document.getElementById("genericContent");
+  const nav=document.getElementById("genericNav");
+  const overlay=document.getElementById("genericOverlay");
+
+  if(badge) badge.textContent="📜 Regla " + (index+1);
+  if(title) title.textContent=item[0] || "";
+  if(lead) lead.textContent=item[1] || "";
+
+  if(content){
+    content.innerHTML=`<div class="detail-item">
+      <strong>${currentLang==="es"?"Aplicación práctica":"Practical application"}</strong><br>
+      ${currentLang==="es"
+        ? "Detén la actividad si la regla no se cumple, reporta la condición y pide apoyo del líder o de EHS."
+        : "Stop the activity if the rule is not met, report the condition, and ask your leader or EHS for support."}
+    </div>`;
+  }
+
+  if(nav) nav.innerHTML="";
+  if(overlay) overlay.style.display="flex";
+}
+
+function renderContribute(){
+  const grid=document.getElementById("contributeGrid");
+  if(!grid) return;
+
+  const items=t("contributions") || [];
+  grid.innerHTML=items.map((item,index)=>{
+    const iconTitle=item[0] || "";
+    const desc=item[1] || "";
+    const action=item[2] || "";
+    return `<div class="info-card rule-click" onclick="showContributionDetail(${index})">
+      <h3>${iconTitle}</h3>
+      <p>${desc}</p>
+      <small>${action}</small>
+    </div>`;
+  }).join("");
+}
+
+function showContributionDetail(index){
+  const items=t("contributions") || [];
+  const item=items[index];
+  if(!item) return;
+
+  const badge=document.getElementById("genericBadge");
+  const title=document.getElementById("genericTitle");
+  const lead=document.getElementById("genericLead");
+  const content=document.getElementById("genericContent");
+  const nav=document.getElementById("genericNav");
+  const overlay=document.getElementById("genericOverlay");
+
+  if(badge) badge.textContent="🤠";
+  if(title) title.textContent=item[0] || "";
+  if(lead) lead.textContent=item[1] || "";
+
+  const bullets=Array.isArray(item[3]) ? item[3] : [];
+  if(content){
+    content.innerHTML=`<div class="detail-item">
+      <strong>${item[2] || ""}</strong>
+      ${bullets.map(x=>`<p>• ${x}</p>`).join("")}
+    </div>`;
+  }
+
+  if(nav) nav.innerHTML="";
+  if(overlay) overlay.style.display="flex";
+}
 function showScreen(s){
+  if(s==="hr") s="leaderboard";
+
   ["home","rules","contribute","scenario","commitment","tournament","leaderboard","hr","final"].forEach(x=>{
     const el=document.getElementById(x+"Screen");
     if(el) el.classList.add("hidden");
@@ -1302,24 +1485,34 @@ function showScreen(s){
   const target=document.getElementById(s+"Screen");
   if(target) target.classList.remove("hidden");
 
-  renderMobileMenu();
+  if(typeof renderMobileMenu === "function") renderMobileMenu();
+
+  if(s==="home" && typeof renderTopThree === "function"){
+    renderTopThree();
+  }
+
+  if(s==="rules" && typeof renderRules === "function"){
+    renderRules();
+  }
+
+  if(s==="contribute" && typeof renderContribute === "function"){
+    renderContribute();
+  }
+
+  if(s==="commitment" && typeof renderCommitments === "function"){
+    renderCommitments();
+  }
 
   if(s==="leaderboard"){
-    renderTopThree();
-    renderLeaderboard();
-    renderHRBoard();
-    startAutoRefresh();
+    if(typeof renderTopThree === "function") renderTopThree();
+    if(typeof renderLeaderboard === "function") renderLeaderboard();
+    if(typeof renderHRBoard === "function") renderHRBoard();
+    if(typeof startAutoRefresh === "function") startAutoRefresh();
   }
-
-  if(s==="hr"){
-    showScreen("leaderboard");
-    return;
-  }
-
-  if(s==="home") renderTopThree();
 
   window.scrollTo({top:0,behavior:"smooth"});
 }
+
 function updateAutoRefreshInfo(){
   const txt = `🔁 ${t("autoRefreshOn")} · ${t("nextRefresh")}: ${autoRefreshCountdown}s`;
   const a = document.getElementById("autoRefreshInfo");
@@ -1553,6 +1746,49 @@ function closeGeneric(){
   const overlay=document.getElementById("genericOverlay");
   if(overlay) overlay.style.display="none";
 }
+
+function getDifficultyLabel(item){
+  const sev=String(item.severity||"").toLowerCase();
+  if(sev.includes("crítico") || sev.includes("critical")) return currentLang==="es" ? "Difícil" : "Hard";
+  if(sev.includes("alto") || sev.includes("high")) return currentLang==="es" ? "Intermedio" : "Medium";
+  return currentLang==="es" ? "Básico" : "Basic";
+}
+
+function cleanScenarioText(title){
+  return String(title || "")
+    .replace(/\s+—\s*Escenario\s*\d+/gi,"")
+    .replace(/\s+—\s*Scenario\s*\d+/gi,"");
+}
+
+function showAllChallenges(){
+  const badge=document.getElementById("genericBadge");
+  const title=document.getElementById("genericTitle");
+  const lead=document.getElementById("genericLead");
+  const content=document.getElementById("genericContent");
+  const nav=document.getElementById("genericNav");
+  const overlay=document.getElementById("genericOverlay");
+
+  if(badge) badge.textContent="🤠";
+  if(title) title.textContent=t("challengesTitle") || (currentLang==="es"?"Listado de retos":"Challenge list");
+  if(lead) lead.textContent=t("challengesLead") || (currentLang==="es"?"Estos son los retos disponibles. No se muestran respuestas.":"These are the available challenges. Answers are not shown.");
+
+  if(content){
+    content.innerHTML=QUESTION_BANK.map((q,i)=>{
+      const lang=q[currentLang] || q.es || q.en || {};
+      const qTitle=cleanScenarioText(lang.title || q.title || "");
+      const diff=getDifficultyLabel(q);
+      return `<div class="detail-item challenge-list-item">
+        <div class="challenge-number">#${i+1}</div>
+        <div>${qTitle}</div>
+        <div class="difficulty-pill">${diff}</div>
+      </div>`;
+    }).join("");
+  }
+
+  if(nav) nav.innerHTML="";
+  if(overlay) overlay.style.display="flex";
+}
+
 function closeRitOverlay(){document.getElementById("ritOverlay").style.display="none"}
 function selectCommitment(c){
   selectedCommitment=c;
