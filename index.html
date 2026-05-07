@@ -451,7 +451,27 @@ table {
 <section id="scenarioScreen" class="hidden"><div class="game-top"><div><strong id="gameLabel"></strong><h2 id="questionCounter"></h2></div><div><span class="metric">🏆 <span id="rewardLabel"></span>: <span id="scoreText">0</span></span> <span class="metric timer">⏱️ <span id="timerText">00:00</span></span></div></div><div id="turnBanner" class="turn-banner"><small id="turnBannerLabel"></small><strong id="turnBannerName"></strong><div style="margin-top:10px;font-size:20px"><span id="liveTeam1"></span> <strong id="liveTeam1Score">0</strong> · <span id="liveTeam2"></span> <strong id="liveTeam2Score">0</strong></div></div><div class="progress-wrap"><div id="progressBar" class="progress"></div></div><div class="card"><div class="card-content"><div id="severityBox"></div><div id="visualBox" class="visual"></div><h3 id="scenarioTitle"></h3><p id="scenarioText" class="lead"></p><div id="optionsBox" class="options"></div><div id="feedbackBox" class="feedback"><h3 id="feedbackTitle"></h3><p id="feedbackText"></p><button id="nextBtn" class="btn-primary" onclick="nextQuestion()"></button></div></div></div></section>
 <section id="commitmentScreen" class="hidden"><div class="center"><div class="badge">🤠</div><h2 id="commitmentTitle"></h2><p id="commitmentLead" class="lead"></p></div><div id="commitmentGrid" class="grid"></div></section>
 <section id="tournamentScreen" class="hidden"><div class="center"><div class="badge">🏆</div><h2 id="tournamentTitle"></h2><p id="tournamentLead" class="lead"></p></div><div class="card"><div class="card-content"><div class="tournament-panel"><div class="team-box"><strong id="team1Label"></strong><input id="team1Name"></div><div class="team-box"><strong id="team2Label"></strong><input id="team2Name"></div></div><br><div class="center"><button id="startTournamentBtn" class="btn-primary" onclick="startTournament()"></button></div><div class="tournament-score"><div class="stat"><strong id="team1Score">0</strong><span id="team1ScoreLabel"></span></div><div class="stat"><strong id="team2Score">0</strong><span id="team2ScoreLabel"></span></div></div><div id="tournamentStatus" class="how" style="display:none"></div></div></div></section>
-<section id="leaderboardScreen" class="hidden"><div class="center"><div class="badge">🏆</div><h2 id="boardTitle"></h2><p id="boardLead" class="lead"></p><button id="refreshBoardBtn" class="btn-primary" onclick="manualRefreshBoard()">🔄 Actualizar tablero</button><div id="refreshStatus" style="margin-top:10px;font-weight:950;color:#7c5a3a;"></div><div id="autoRefreshInfo" style="margin-top:6px;font-weight:900;color:#7c5a3a;font-size:14px;"></div></div><div class="card"><div class="card-content"><div class="unified-board"><div class="board-section"><h3 id="individualBoardTitle" class="board-subtitle"></h3><div class="leaderboardWrap"><table class="leaderboard"><thead><tr><th>#</th><th id="thName"></th><th id="thScore"></th><th id="thTime"></th><th id="thRank"></th><th id="thCritical"></th><th id="thCommitment"></th><th id="thDate"></th></tr></thead><tbody id="leaderboardBody"></tbody></table></div></div><div class="board-section"><h3 id="teamBoardTitle" class="board-subtitle"></h3><div class="leaderboardWrap"><table class="leaderboard"><thead><tr><th>#</th><th id="thTeams"></th><th id="thFinalScore"></th><th id="thWinner"></th><th id="thTeamDate"></th></tr></thead><tbody id="teamLeaderboardBody"></tbody></table></div></div></div></div></div><br><div class="center"><button id="clearBoardBtn" class="btn-secondary" onclick="clearLeaderboard()"></button> <button id="newCowboyBtn" class="btn-primary" onclick="showScreen('home')"></button></div></section>
+<section id="leaderboardScreen" class="hidden"><div class="center"><div class="badge">🏆</div><h2 id="boardTitle"></h2><p id="boardLead" class="lead"></p><button id="refreshBoardBtn" class="btn-primary" onclick="manualRefreshBoard()">🔄 Actualizar tablero</button><div id="refreshStatus" style="margin-top:10px;font-weight:950;color:#7c5a3a;"></div><div id="autoRefreshInfo" style="margin-top:6px;font-weight:900;color:#7c5a3a;font-size:14px;"></div></div><div class="card"><div class="card-content"><div class="unified-board"><div class="board-section"><h3 id="individualBoardTitle" class="board-subtitle"></h3><div class="leaderboardWrap"><table class="leaderboard"><thead><tr><th>#</th><th id="thName"></th><th id="thScore"></th><th id="thTime"></th><th id="thRank"></th><th id="thCritical"></th><th id="thCommitment"></th><th id="thDate"></th></tr></thead><tbody id="leaderboardBody"></tbody></table></div></div><div class="board-section"><h3 id="teamBoardTitle" class="board-subtitle"></h3><div class="leaderboardWrap"><table class="leaderboard"><thead><tr><th>#</th><th id="thTeams"></th><th id="thFinalScore"></th><th id="thWinner"></th><th id="thTeamDate"></th></tr></thead><tbody id="teamLeaderboardBody"></tbody></table></div></div></div></div></div>
+<div class="card" id="combinedHRBoardCard" style="margin-top:22px;">
+  <div class="card-content">
+    <div class="center">
+      <div class="badge">📊 HR</div>
+      <h2 id="hrBoardTitleCombined"></h2>
+      <p id="hrBoardLeadCombined" class="lead"></p>
+    </div>
+    <div class="hr-chart-grid">
+      <div class="board-section">
+        <h3 id="accuracyTitleCombined" class="board-subtitle"></h3>
+        <div id="accuracyChartCombined"></div>
+      </div>
+      <div class="board-section">
+        <h3 id="opportunityTitleCombined" class="board-subtitle"></h3>
+        <div id="opportunityChartCombined"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<br><div class="center"><button id="clearBoardBtn" class="btn-secondary" onclick="clearLeaderboard()"></button> <button id="newCowboyBtn" class="btn-primary" onclick="showScreen('home')"></button></div></section>
 <section id="hrScreen" class="hidden"><div class="center"><div class="badge">📊 HR</div><h2 id="hrBoardTitle"></h2><p id="hrBoardLead" class="lead"></p><button id="refreshHRBtn" class="btn-primary" onclick="manualRefreshBoard()">🔄 Actualizar tablero</button><div id="refreshHRStatus" style="margin-top:10px;font-weight:950;color:#7c5a3a;"></div><div id="autoRefreshHRInfo" style="margin-top:6px;font-weight:900;color:#7c5a3a;font-size:14px;"></div></div><div class="hr-chart-grid"><div class="card"><div class="card-content"><h3 id="accuracyTitle"></h3><div id="accuracyChart"></div></div></div><div class="card"><div class="card-content"><h3 id="opportunityTitle"></h3><div id="opportunityChart"></div></div></div></div></section>
 <section id="finalScreen" class="hidden"><div class="card"><div class="card-content center"><div style="font-size:70px">🤠</div><h2 id="finalMessage"></h2><div id="finalBadge" class="badge"></div><p id="finalLead" class="lead"></p><div id="finalCommitment" class="final-commitment"></div><div id="finalBonus"></div><div class="stats"><div class="stat"><strong id="finalPercent"></strong><span id="scoreResultLabel"></span></div><div class="stat"><strong id="finalScenario"></strong><span id="duelsWonLabel"></span></div><div class="stat"><strong id="finalTime"></strong><span id="timeLabel"></span></div></div><div class="how"><h3 id="finalMsgTitle"></h3><p id="finalMsgText"></p></div><br><button id="viewBoardBtn" class="btn-primary" onclick="showScreen('leaderboard')"></button> <button id="rematchBtn" class="btn-secondary" onclick="startGame()"></button> <button id="newCowboyBtn2" class="btn-secondary" onclick="showScreen('home')"></button></div></div></section>
 </main>
@@ -697,6 +717,7 @@ async function refreshRemoteData(){
   renderTopThree();
   if(!document.getElementById("leaderboardScreen").classList.contains("hidden")) renderLeaderboard();
   if(!document.getElementById("hrScreen").classList.contains("hidden")) renderHRBoard();
+  syncCombinedHRCharts();
 
   const stamp = new Date().toLocaleTimeString("es-MX");
   const status = document.getElementById("refreshStatus");
@@ -723,13 +744,26 @@ refreshRemoteData();
 startAutoRefresh();if(currentQuestions.length&&!document.getElementById("scenarioScreen").classList.contains("hidden"))renderQuestion()}
 
 
+
+function syncCombinedHRLabels(){
+  const map = [
+    ["hrBoardTitleCombined","hrBoardTitle"],
+    ["hrBoardLeadCombined","hrBoardLead"],
+    ["accuracyTitleCombined","accuracyTitle"],
+    ["opportunityTitleCombined","opportunityTitle"]
+  ];
+  map.forEach(([target,key]) => {
+    const el = document.getElementById(target);
+    if(el) el.textContent = t(key);
+  });
+}
+
 function getMobileMenuOptions(){
   return [
     { value:"home", label:t("navHome") },
     { value:"rules", label:t("navRules") },
     { value:"contribute", label:t("navContribute") },
     { value:"leaderboard", label:t("navBoard") },
-    { value:"hr", label:t("navHR") },
     { value:"recognition", label:t("navRecognition") },
     { value:"play", label:t("navPlay") }
   ];
@@ -789,7 +823,6 @@ function applyLanguage(){
       <button class="btn-secondary" onclick="showScreen('rules')">${t("navRules")}</button>
       <button class="btn-secondary" onclick="showScreen('contribute')">${t("navContribute")}</button>
       <button class="btn-secondary" onclick="showScreen('leaderboard')">${t("navBoard")}</button>
-      <button class="btn-secondary" onclick="showScreen('hr')">${t("navHR")}</button>
       <button class="btn-secondary" onclick="openRecognitionModal()">${t("navRecognition")}</button>
       <button class="btn-primary" onclick="openPlayModal()">${t("navPlay")}</button>
     `;
@@ -863,7 +896,6 @@ function applyLanguage(){
   setText("scoreResultLabel","result");
   setText("duelsWonLabel","duelsWon");
   setText("timeLabel","time");
-  setText("finalMsgTitle","navHR");
   setText("finalMsgText","ritFooter");
   setText("viewBoardBtn","navBoard");
   setText("rematchBtn","start");
@@ -873,6 +905,7 @@ function applyLanguage(){
   setText("ritCloseBtn","close");
   setText("ritFooterText","ritFooter");
   renderMobileMenu();
+  syncCombinedHRLabels();
   setText("genericClose","close");
   setText("recognitionTitle","recognitionTitle");
   setText("recognitionLead","recognitionLead");
@@ -903,7 +936,8 @@ function applyLanguage(){
   renderCommitment();
   renderTopThree();
   if(!document.getElementById("leaderboardScreen").classList.contains("hidden")) renderLeaderboard();
-  if(!document.getElementById("hrScreen").classList.contains("hidden")) renderHRBoard(); if(typeof refreshPlayModalTexts==="function") refreshPlayModalTexts();
+  if(!document.getElementById("hrScreen").classList.contains("hidden")) renderHRBoard();
+  syncCombinedHRCharts(); if(typeof refreshPlayModalTexts==="function") refreshPlayModalTexts();
 }
 
 function showModalNameStep(){
@@ -1076,8 +1110,24 @@ function closePlayModal(){
   const modal=document.getElementById("playModal");
   if(modal) modal.style.display="none";
 }
+
+function syncCombinedHRCharts(){
+  const pairs = [
+    ["accuracyChart","accuracyChartCombined"],
+    ["opportunityChart","opportunityChartCombined"]
+  ];
+  pairs.forEach(([srcId,targetId]) => {
+    const src = document.getElementById(srcId);
+    const target = document.getElementById(targetId);
+    if(src && target){
+      target.innerHTML = src.innerHTML;
+    }
+  });
+}
+
 function showScreen(s){["home","rules","contribute","scenario","commitment","tournament","leaderboard","hr","final"].forEach(x=>document.getElementById(x+"Screen").classList.add("hidden"));document.getElementById(s+"Screen").classList.remove("hidden");renderMobileMenu();
-  if(s==="leaderboard"){renderLeaderboard();startAutoRefresh();}if(s==="hr"){renderHRBoard();startAutoRefresh();}if(s==="home")renderTopThree();window.scrollTo({top:0,behavior:"smooth"})}
+  if(s==="leaderboard"){renderLeaderboard();startAutoRefresh();}if(s==="hr"){renderHRBoard();
+  syncCombinedHRCharts();startAutoRefresh();}if(s==="home")renderTopThree();window.scrollTo({top:0,behavior:"smooth"})}
 function renderRules(){document.getElementById("rulesGrid").innerHTML=t("rules").map((r,i)=>`<div class="info-card rule-click" onclick="openRule(${i})"><strong>⭐ ${r[0]}</strong><br>${r[1]}<br><br><small><strong>${t("clickRule")}</strong></small></div>`).join("")}
 function renderContributions(){document.getElementById("contributeGrid").innerHTML=t("contributions").map((c,i)=>`<button class="commitment-option" onclick="openContribution(${i})"><strong>${c[0]}</strong><br>${c[1]}</button>`).join("")}
 function renderCommitment(){document.getElementById("commitmentGrid").innerHTML=t("contributions").slice(0,4).map(c=>`<button class="commitment-option" onclick="selectCommitment('${c[2].replace(/'/g,"\\'")}')"><strong>${c[0]}</strong><br>${c[1]}</button>`).join("")}
@@ -1277,7 +1327,8 @@ function renderLeaderboard(){
   }
 }
 function renderHRBoard(){let at=document.getElementById("accuracyTitle");if(at)at.textContent=t("accuracyTitle");let ot=document.getElementById("opportunityTitle");if(ot)ot.textContent=t("opportunityTitle");let logs=getAnswerLogs(),agg={};logs.forEach(x=>{let k=x.category;agg[k]=agg[k]||{total:0,correct:0};agg[k].total++;if(x.correct)agg[k].correct++});let arr=Object.entries(agg).map(([topic,v])=>{let acc=v.total?Math.round(v.correct/v.total*100):0;return{topic,total:v.total,correct:v.correct,accuracy:acc,opportunity:100-acc}});let render=(data,type)=>data.length?data.map(x=>{let val=type==="accuracy"?x.accuracy:x.opportunity;return`<div class="hr-chart-row"><div class="hr-chart-label">${x.topic}<br><small>${t("totalAnswers")}: ${x.total}</small></div><div class="hr-bar-track"><div class="hr-bar ${type==="opportunity"?"opportunity":""}" style="width:${val}%"></div></div><div class="hr-chart-value">${val}%<br><small>${x.correct}/${x.total}</small></div></div>`}).join(""):`<div class="detail-item center">${t("noRegistered")}</div>`;let a=[...arr].sort((x,y)=>y.accuracy-x.accuracy||y.total-x.total),o=[...arr].sort((x,y)=>y.opportunity-x.opportunity||y.total-x.total);let ac=document.getElementById("accuracyChart"),op=document.getElementById("opportunityChart");if(ac)ac.innerHTML=render(a,"accuracy");if(op)op.innerHTML=render(o,"opportunity")}
-function clearLeaderboard(){if(confirm(currentLang==="es"?"¿Seguro que deseas borrar tableros y datos RH?":"Clear boards and HR data?")){localStorage.removeItem("westernRitScores");localStorage.removeItem("westernTeamScores");localStorage.removeItem("westernWrongLogs");localStorage.removeItem("westernAnswerLogs");renderLeaderboard();renderHRBoard();renderTopThree()}}
+function clearLeaderboard(){if(confirm(currentLang==="es"?"¿Seguro que deseas borrar tableros y datos RH?":"Clear boards and HR data?")){localStorage.removeItem("westernRitScores");localStorage.removeItem("westernTeamScores");localStorage.removeItem("westernWrongLogs");localStorage.removeItem("westernAnswerLogs");renderLeaderboard();renderHRBoard();
+  syncCombinedHRCharts();renderTopThree()}}
 function startGame(){let input=document.getElementById("participantName"),err=document.getElementById("nameError");if(!input.value.trim()){err.style.display="block";input.focus();return}err.style.display="none";participantName=input.value.trim();currentQuestions=shuffle(QUESTION_BANK).slice(0,questionCount).map(q=>({...q,opts:shuffle(local(q,"options"))}));currentIndex=0;score=0;answered=false;selectedCommitment="";criticalErrors=0;ritErrors=[];tournamentMode=false;showScreen("scenario");startTimer();renderQuestion()}
 function startTournament(){let a=document.getElementById("team1Name").value.trim()||t("team1"),b=document.getElementById("team2Name").value.trim()||t("team2");tournamentMode=true;tournamentTurn=0;tournamentScores=[0,0];tournamentNames=[a,b];document.getElementById("team1ScoreLabel").textContent=a;document.getElementById("team2ScoreLabel").textContent=b;document.getElementById("team1Score").textContent="0";document.getElementById("team2Score").textContent="0";currentQuestions=shuffle(QUESTION_BANK).sort((x,y)=>(x.severity==="Medio"?1:x.severity==="Alto"?2:3)-(y.severity==="Medio"?1:y.severity==="Alto"?2:3)).slice(0,10).map(q=>({...q,opts:shuffle(local(q,"options"))}));currentIndex=0;score=0;answered=false;participantName=a+" vs "+b;showScreen("scenario");startTimer();renderQuestion()}
 function renderQuestion(){let q=currentQuestions[currentIndex];answered=false;let total=tournamentMode?currentQuestions.length:questionCount;document.getElementById("questionCounter").textContent=tournamentMode?`${t("question")} ${currentIndex+1} / ${total} · ${tournamentNames[tournamentTurn]}`:`${t("question")} ${currentIndex+1} de ${total}`;document.getElementById("scoreText").textContent=score;document.getElementById("progressBar").style.width=((currentIndex+1)/total*100)+"%";let sev=q.severity,sevClass=sev==="Crítico"?"sev-critico":sev==="Alto"?"sev-alto":"sev-medio";document.getElementById("severityBox").innerHTML=`<div class="severity ${sevClass}">⚠️ ${t("risk")} ${sevLabel(sev)}</div><span class="difficulty-pill">${difficulty(q)}</span>`;let v=getVisual(q.visual);document.getElementById("visualBox").innerHTML=`<div class="visual-main" style="background-image:url('${v[2]}')"></div><div class="visual-label"><small>${t("postcard")}</small><strong>${v[0]}</strong></div><div class="visual-tag">${v[1]}</div>`;document.getElementById("scenarioTitle").textContent=local(q,"title");document.getElementById("scenarioText").textContent=local(q,"text");document.getElementById("optionsBox").innerHTML=q.opts.map((o,i)=>`<button class="option" data-answer="${o.replace(/"/g,"&quot;")}" onclick="selectAnswer(this)"><small>${t("answer")} ${i+1}:</small><strong>${o}</strong></button>`).join("");let fb=document.getElementById("feedbackBox");fb.style.display="none";fb.classList.remove("correct");document.getElementById("nextBtn").textContent=currentIndex===total-1?(tournamentMode?t("navTournament"):t("oath")):t("next");let banner=document.getElementById("turnBanner");banner.style.display=tournamentMode?"block":"none";if(tournamentMode){document.getElementById("turnBannerName").textContent=tournamentNames[tournamentTurn];document.getElementById("liveTeam1").textContent=tournamentNames[0];document.getElementById("liveTeam2").textContent=tournamentNames[1];document.getElementById("liveTeam1Score").textContent=tournamentScores[0];document.getElementById("liveTeam2Score").textContent=tournamentScores[1]}}
