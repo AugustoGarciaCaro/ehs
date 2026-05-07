@@ -1038,6 +1038,56 @@ if(!UI.en.recognitionSending) UI.en.recognitionSending = "Sending request...";
 if(!UI.es.recognitionReady) UI.es.recognitionReady = "Solicitud enviada. El correo puede tardar unos segundos en llegar.";
 if(!UI.en.recognitionReady) UI.en.recognitionReady = "Request sent. The email may take a few seconds to arrive.";
 
+
+/* =========================
+   Translation fallback patch
+========================= */
+Object.assign(UI.es, {
+  recognitionSending: "⏳ Enviando reconocimiento, por favor espera...",
+  recognitionReady: "✅ Reconocimiento enviado correctamente. El correo puede tardar unos segundos en llegar.",
+  recognitionSendError: "❌ No se pudo enviar el reconocimiento. Revisa la conexión e intenta nuevamente.",
+  practicalApplication: "Aplicación práctica",
+  recommendedAction: "Acción recomendada",
+  bestPractices: "Buenas prácticas",
+  contributionHelp: "Estas acciones ayudan a fortalecer la cultura de seguridad y a prevenir incidentes antes de que ocurran.",
+  description: "Descripción",
+  nonCompliance: "Consecuencia de incumplir",
+  whatToDo: "Qué debo hacer",
+  safetyFocus: "Enfoque de seguridad",
+  criticalRisk: "Riesgo crítico",
+  stopRisk: "La prioridad siempre es detener el riesgo antes de continuar con la actividad.",
+  ruleLabel: "Regla",
+  uncategorized: "Sin categoría",
+  individualCount: "Individual",
+  tournamentCount: "Torneo",
+  answersCount: "Respuestas",
+  boardRanking: "Lugar en tablero"
+});
+
+Object.assign(UI.en, {
+  recognitionSending: "⏳ Sending recognition, please wait...",
+  recognitionReady: "✅ Recognition sent successfully. The email may take a few seconds to arrive.",
+  recognitionSendError: "❌ The recognition could not be sent. Check the connection and try again.",
+  practicalApplication: "Practical application",
+  recommendedAction: "Recommended action",
+  bestPractices: "Best practices",
+  contributionHelp: "These actions help strengthen the safety culture and prevent incidents before they happen.",
+  description: "Description",
+  nonCompliance: "Consequence of non-compliance",
+  whatToDo: "What I should do",
+  safetyFocus: "Safety focus",
+  criticalRisk: "Critical risk",
+  stopRisk: "The priority is always to stop the risk before continuing the activity.",
+  ruleLabel: "Rule",
+  uncategorized: "Uncategorized",
+  individualCount: "Individual",
+  tournamentCount: "Tournament",
+  answersCount: "Answers",
+  boardRanking: "Board ranking"
+});
+
+let genericModalState = null;
+
 let currentLang="es",currentQuestions=[],currentIndex=0,score=0,answered=false,participantName="",selectedCommitment="",criticalErrors=0,ritErrors=[],timerInterval=null,startTime=null,elapsedSeconds=0,tournamentMode=false,tournamentTurn=0,tournamentScores=[0,0],tournamentNames=["Equipo 1","Equipo 2"],genericMode="",genericIndex=0;
 const questionCount=5;
 
@@ -1148,7 +1198,7 @@ async function refreshRemoteData(){
   const stamp = new Date().toLocaleTimeString(currentLang==="es"?"es-MX":"en-US");
   const status = document.getElementById("refreshStatus");
   const hrStatus = document.getElementById("refreshHRStatus");
-  const msg = `✅ ${t("boardUpdated") || (currentLang==="es"?"Tablero actualizado":"Board updated")} · ${stamp} · ${currentLang==="es"?"Individual":"Individual"}: ${remoteIndividual.length} · ${currentLang==="es"?"Torneo":"Tournament"}: ${remoteTeams.length} · ${currentLang==="es"?"Respuestas":"Answers"}: ${remoteAnswers.length}`;
+  const msg = `✅ ${t("boardUpdated")} · ${stamp} · ${t("individualCount")}: ${remoteIndividual.length} · ${t("tournamentCount")}: ${remoteTeams.length} · ${t("answersCount")}: ${remoteAnswers.length}`;
   if(status) status.textContent = msg;
   if(hrStatus) hrStatus.textContent = msg;
 }
@@ -1186,7 +1236,24 @@ function setLanguage(lang){
   const final=document.getElementById("finalScreen");
   if(final && !final.classList.contains("hidden")){
     const duelLabel=document.getElementById("duelsWonLabel");
-    if(duelLabel) duelLabel.textContent=currentLang==="es"?"Lugar en tablero":"Board ranking";
+    if(duelLabel) duelLabel.textContent=t("boardRanking");
+  }
+
+  const generic=document.getElementById("genericOverlay");
+  if(generic && generic.style.display==="flex" && genericModalState){
+    if(genericModalState.type==="rule") showRuleDetail(genericModalState.index);
+    if(genericModalState.type==="contribution") showContributionDetail(genericModalState.index);
+    if(genericModalState.type==="challenges") showAllChallenges();
+  }
+
+  const recognition=document.getElementById("recognitionModal");
+  if(recognition && recognition.style.display==="flex"){
+    const status=document.getElementById("recognitionStatus");
+    if(status && status.style.display!=="none"){
+      if(status.classList.contains("status-success")) status.textContent=t("recognitionReady");
+      if(status.classList.contains("status-loading")) status.textContent=t("recognitionSending");
+      if(status.classList.contains("status-error")) status.textContent=t("recognitionError");
+    }
   }
 
   if(typeof refreshRemoteData === "function"){
@@ -1509,7 +1576,7 @@ async function generateRecognitionAndEmail(){
 
   if(!name || !isValidEmail(email)){
     if(err) err.style.display = "block";
-    setRecognitionStatus("error", t("recognitionError") || (currentLang==="es"?"❌ Captura nombre y correo electrónico para continuar.":"❌ Enter name and email address to continue."));
+    setRecognitionStatus("error", t("recognitionError"));
     return;
   }
 
@@ -1520,7 +1587,7 @@ async function generateRecognitionAndEmail(){
     btn.textContent = currentLang==="es" ? "Enviando..." : "Sending...";
   }
 
-  setRecognitionStatus("loading", t("recognitionSending") || (currentLang==="es"?"⏳ Enviando reconocimiento, por favor espera...":"⏳ Sending recognition, please wait..."));
+  setRecognitionStatus("loading", t("recognitionSending"));
 
   try {
     console.log("Sending recognition payload", {
@@ -1533,14 +1600,14 @@ async function generateRecognitionAndEmail(){
 
     await sendRecognitionByEmail(name, email);
 
-    setRecognitionStatus("success", t("recognitionReady") || (currentLang==="es"?"✅ Reconocimiento enviado correctamente. El correo puede tardar unos segundos en llegar.":"✅ Recognition sent successfully. The email may take a few seconds to arrive."));
+    setRecognitionStatus("success", t("recognitionReady"));
 
     if(nameInput) nameInput.value = "";
     if(emailInput) emailInput.value = "";
 
   } catch(error){
     console.error("Recognition send error:", error);
-    setRecognitionStatus("error", currentLang==="es"?"❌ No se pudo enviar el reconocimiento. Revisa la conexión e intenta nuevamente.":"❌ The recognition could not be sent. Check the connection and try again.");
+    setRecognitionStatus("error", t("recognitionSendError"));
 
   } finally {
     if(btn){
@@ -1745,6 +1812,8 @@ function getRuleDetailData(index){
 
 
 function showRuleDetail(index){
+  genericModalState={type:"rule", index};
+
   const rules=t("rules") || [];
   const item=rules[index];
   if(!item) return;
@@ -1758,25 +1827,25 @@ function showRuleDetail(index){
   const nav=document.getElementById("genericNav");
   const overlay=document.getElementById("genericOverlay");
 
-  if(badge) badge.textContent=currentLang==="es" ? "📜 Regla " + (index+1) : "📜 Rule " + (index+1);
+  if(badge) badge.textContent=`📜 ${t("ruleLabel")} ${index+1}`;
   if(title) title.textContent=item[0] || "";
   if(lead) lead.textContent=item[1] || "";
 
   if(content){
     content.innerHTML=`
       <div class="detail-item">
-        <strong>${currentLang==="es"?"Descripción":"Description"}</strong>
+        <strong>${t("description")}</strong>
         <p>${item[1] || ""}</p>
       </div>
 
       <div class="detail-item">
-        <strong>${currentLang==="es"?"Consecuencia de incumplir":"Consequence of non-compliance"}</strong>
-        <div class="detail-accent">⚠️ ${currentLang==="es"?"Riesgo crítico":"Critical risk"}</div>
+        <strong>${t("nonCompliance")}</strong>
+        <div class="detail-accent">⚠️ ${t("criticalRisk")}</div>
         <p>${detail.consequence || ""}</p>
       </div>
 
       <div class="detail-item">
-        <strong>${currentLang==="es"?"Qué debo hacer":"What I should do"}</strong>
+        <strong>${t("whatToDo")}</strong>
         <div class="bullet-card" style="margin-top:10px;">
           <div class="bullet-icon">✓</div>
           <div class="bullet-text">${detail.action || ""}</div>
@@ -1784,11 +1853,8 @@ function showRuleDetail(index){
       </div>
 
       <div class="detail-item">
-        <strong>${currentLang==="es"?"Enfoque de seguridad":"Safety focus"}</strong>
-        <p>${currentLang==="es"
-          ? "La prioridad siempre es detener el riesgo antes de continuar con la actividad."
-          : "The priority is always to stop the risk before continuing the activity."}
-        </p>
+        <strong>${t("safetyFocus")}</strong>
+        <p>${t("stopRisk")}</p>
       </div>
     `;
   }
@@ -1815,6 +1881,8 @@ function renderContribute(){
 }
 
 function showContributionDetail(index){
+  genericModalState={type:"contribution", index};
+
   const items=t("contributions") || [];
   const item=items[index];
   if(!item) return;
@@ -1831,22 +1899,17 @@ function showContributionDetail(index){
   if(lead) lead.textContent=item[1] || "";
 
   const bullets=Array.isArray(item[3]) ? item[3] : [];
-  const sectionLabel=currentLang==="es" ? "Acción recomendada" : "Recommended action";
-  const practiceLabel=currentLang==="es" ? "Buenas prácticas" : "Best practices";
 
   if(content){
     content.innerHTML=`
       <div class="detail-item">
-        <strong>${sectionLabel}</strong>
+        <strong>${t("recommendedAction")}</strong>
         <div class="detail-accent">✨ ${item[2] || ""}</div>
-        <p>${currentLang==="es"
-          ? "Estas acciones ayudan a fortalecer la cultura de seguridad y a prevenir incidentes antes de que ocurran."
-          : "These actions help strengthen the safety culture and prevent incidents before they happen."}
-        </p>
+        <p>${t("contributionHelp")}</p>
       </div>
 
       <div class="detail-item">
-        <strong>${practiceLabel}</strong>
+        <strong>${t("bestPractices")}</strong>
         <div class="bullet-grid">
           ${bullets.map(x=>`
             <div class="bullet-card">
@@ -2080,7 +2143,7 @@ function renderHRBoard(){
   const agg={};
 
   logs.forEach(x=>{
-    const k=x.category || x.rule || (currentLang==="es"?"Sin categoría":"Uncategorized");
+    const k=x.category || x.rule || t("uncategorized");
     agg[k]=agg[k]||{total:0,correct:0};
     agg[k].total++;
     if(x.correct) agg[k].correct++;
@@ -2121,6 +2184,7 @@ function selectAnswer(btn){if(answered)return;answered=true;let q=currentQuestio
 function nextQuestion(){let total=tournamentMode?currentQuestions.length:questionCount;if(tournamentMode){if(currentIndex===total-1){stopTimer();let w=tournamentScores[0]===tournamentScores[1]?(currentLang==="es"?"Empate":"Tie"):(tournamentScores[0]>tournamentScores[1]?tournamentNames[0]:tournamentNames[1]);saveTeamMatch({team1:tournamentNames[0],team2:tournamentNames[1],team1Score:tournamentScores[0],team2Score:tournamentScores[1],winner:w,date:new Date().toLocaleString("es-MX")});let status=document.getElementById("tournamentStatus");status.style.display="block";status.innerHTML=`<h3>🏆 ${t("tournamentResult")}</h3><p>${tournamentNames[0]}: ${tournamentScores[0]} · ${tournamentNames[1]}: ${tournamentScores[1]}</p><p><strong>${t("winner")}:</strong> ${w}</p>`;showScreen("tournament");tournamentMode=false;return}currentIndex++;tournamentTurn=currentIndex%2;renderQuestion();return}if(currentIndex===total-1){stopTimer();showScreen("commitment");return}currentIndex++;renderQuestion()}
 function showRitOverlay(r){document.getElementById("ritBadgeText").textContent=t("ritBadge");document.getElementById("ritStopText").textContent=t("stop");document.getElementById("ritFooterText").textContent=t("ritFooter");document.getElementById("ritContent").innerHTML=`<div class="detail-item"><strong>${t("conduct")}</strong>${r.conducta}</div><div class="detail-item"><strong>${t("sanction")}</strong><span class="sanction">${r.sancion}</span></div><div class="detail-item"><strong>${t("support")}</strong>${r.fundamento}</div>`;document.getElementById("ritOverlay").style.display="flex"}
 function closeGeneric(){
+  genericModalState=null;
   const overlay=document.getElementById("genericOverlay");
   if(overlay) overlay.style.display="none";
 }
@@ -2139,6 +2203,8 @@ function cleanScenarioText(title){
 }
 
 function showAllChallenges(){
+  genericModalState={type:"challenges"};
+
   const badge=document.getElementById("genericBadge");
   const title=document.getElementById("genericTitle");
   const lead=document.getElementById("genericLead");
@@ -2166,10 +2232,6 @@ function showAllChallenges(){
   if(nav) nav.innerHTML="";
   if(overlay) overlay.style.display="flex";
 }
-
-
-
-
 
 function getDifficultyLabel(item){
   const sev=String(item.severity||"").toLowerCase();
@@ -2260,7 +2322,7 @@ function finishGame(){
   document.getElementById("finalScenario").textContent=`#${boardPlace}`;
   document.getElementById("finalTime").textContent=time;
 
-  const rankingLabel=currentLang==="es"?"Lugar en tablero":"Board ranking";
+  const rankingLabel=t("boardRanking");
   const duelLabel=document.getElementById("duelsWonLabel");
   if(duelLabel) duelLabel.textContent=rankingLabel;
 
