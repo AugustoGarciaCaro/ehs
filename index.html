@@ -496,8 +496,8 @@ if(!UI.es.recognitionName) UI.es.recognitionName = "Nombre del participante";
 if(!UI.en.recognitionName) UI.en.recognitionName = "Participant name";
 if(!UI.es.recognitionEmail) UI.es.recognitionEmail = "Correo electrónico";
 if(!UI.en.recognitionEmail) UI.en.recognitionEmail = "Email address";
-if(!UI.es.recognitionGenerate) UI.es.recognitionGenerate = "Generar PDF y enviar por email";
-if(!UI.en.recognitionGenerate) UI.en.recognitionGenerate = "Generate PDF and send by email";
+if(!UI.es.recognitionGenerate) UI.es.recognitionGenerate = "Enviar reconocimiento por email";
+if(!UI.en.recognitionGenerate) UI.en.recognitionGenerate = "Send recognition by email";
 if(!UI.es.recognitionClose) UI.es.recognitionClose = "Cerrar";
 if(!UI.en.recognitionClose) UI.en.recognitionClose = "Close";
 if(!UI.es.recognitionError) UI.es.recognitionError = "Captura nombre y correo electrónico para continuar.";
@@ -525,7 +525,9 @@ function postToSheet(payload){
     method: "POST",
     mode: "no-cors",
     keepalive: true,
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
     body: JSON.stringify(payload)
   }).catch(err => {
     console.warn("Sheet post failed", err);
@@ -882,7 +884,10 @@ function sendRecognitionByEmail(name, email){
     type: "reconocimiento",
     name,
     email,
-    filename: `Reconocimiento_Reglas_Cardinales_${String(name).trim().replace(/[^\w\sáéíóúÁÉÍÓÚñÑ-]/g,"").replace(/\s+/g,"_")}.pdf`
+    filename: `Reconocimiento_Reglas_Cardinales_${String(name)
+      .trim()
+      .replace(/[^\w\sáéíóúÁÉÍÓÚñÑ-]/g,"")
+      .replace(/\s+/g,"_")}.jpg`
   });
 }
 function isMobileDevice(){
@@ -890,55 +895,47 @@ function isMobileDevice(){
 }
 
 async function generateRecognitionAndEmail(){
-  const nameInput=document.getElementById("recognitionNameInput");
-  const emailInput=document.getElementById("recognitionEmailInput");
-  const err=document.getElementById("recognitionError");
-  const status=document.getElementById("recognitionStatus");
-  const btn=document.getElementById("recognitionGenerateBtn");
+  const nameInput = document.getElementById("recognitionNameInput");
+  const emailInput = document.getElementById("recognitionEmailInput");
+  const err = document.getElementById("recognitionError");
+  const status = document.getElementById("recognitionStatus");
+  const btn = document.getElementById("recognitionGenerateBtn");
 
-  const name=nameInput ? nameInput.value.trim() : "";
-  const email=emailInput ? emailInput.value.trim() : "";
+  const name = nameInput ? nameInput.value.trim() : "";
+  const email = emailInput ? emailInput.value.trim() : "";
 
   if(!name || !isValidEmail(email)){
-    if(err) err.style.display="block";
-    if(status) status.style.display="none";
+    if(err) err.style.display = "block";
+    if(status) status.style.display = "none";
     return;
   }
 
-  if(err) err.style.display="none";
+  if(err) err.style.display = "none";
   if(status){
-    status.textContent=t("recognitionSending") || "Enviando solicitud...";
-    status.style.display="block";
+    status.textContent = t("recognitionSending") || "Enviando solicitud...";
+    status.style.display = "block";
   }
-  if(btn) btn.disabled=true;
 
-  try{
-    // Primero se envía la solicitud al Apps Script.
-    // Esto es más estable en celular que descargar primero.
+  if(btn) btn.disabled = true;
+
+  try {
+    // El sitio solo manda datos ligeros.
+    // Apps Script genera la imagen JPEG desde la plantilla de Google Drive y la envía por correo.
     await sendRecognitionByEmail(name, email);
 
     if(status){
-      status.textContent=t("recognitionReady") || "Solicitud enviada. El correo puede tardar unos segundos en llegar.";
-      status.style.display="block";
+      status.textContent = t("recognitionReady") || "Solicitud enviada. El correo puede tardar unos segundos en llegar.";
+      status.style.display = "block";
     }
 
-    // En desktop se descarga respaldo local.
-    // En móvil se evita la descarga automática para no interrumpir el POST.
-    if(!isMobileDevice()){
-      const doc=createRecognitionPDF(name);
-      if(doc){
-        downloadRecognitionPDF(doc, name);
-      }
-    }
-
-  }catch(error){
+  } catch(error){
     console.error("Recognition send error:", error);
     if(status){
-      status.textContent="No se pudo enviar la solicitud. Revisa conexión o intenta de nuevo.";
-      status.style.display="block";
+      status.textContent = "No se pudo enviar la solicitud. Revisa conexión o intenta de nuevo.";
+      status.style.display = "block";
     }
-  }finally{
-    if(btn) btn.disabled=false;
+  } finally {
+    if(btn) btn.disabled = false;
   }
 }
 
