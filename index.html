@@ -708,6 +708,160 @@ header .nav{
   }
 }
 
+
+/* =========================
+   Polished generic modal layout
+========================= */
+#genericOverlay .modal{
+  width:min(1120px,96vw)!important;
+  max-height:90vh!important;
+  padding:32px 34px 28px!important;
+  background:linear-gradient(180deg,#fffaf2 0%,#fff7ed 100%)!important;
+  border:5px solid #9a3412!important;
+  border-radius:34px!important;
+  box-shadow:0 28px 80px rgba(0,0,0,.45)!important;
+}
+
+#genericOverlay #genericBadge{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:64px!important;
+  min-height:46px!important;
+  padding:10px 18px!important;
+  margin-bottom:16px!important;
+  border-radius:999px!important;
+  background:linear-gradient(135deg,#7c2d12,#9a3412)!important;
+  color:#fff7ed!important;
+  border:2px dashed #f2c078!important;
+  box-shadow:0 8px 18px rgba(124,45,18,.22)!important;
+  font-size:18px!important;
+}
+
+#genericOverlay #genericTitle{
+  margin:0 0 10px!important;
+  color:#4a2108!important;
+  font-size:clamp(34px,4.4vw,68px)!important;
+  line-height:1.02!important;
+  letter-spacing:-.02em!important;
+}
+
+#genericOverlay #genericLead{
+  margin:0 0 20px!important;
+  color:#8b5e34!important;
+  font-size:clamp(18px,2vw,24px)!important;
+  line-height:1.35!important;
+  max-width:900px!important;
+}
+
+#genericOverlay #genericContent{
+  display:grid!important;
+  gap:14px!important;
+  margin-top:10px!important;
+}
+
+#genericOverlay .detail-item{
+  background:#ffffff!important;
+  border:2px solid rgba(139,69,19,.18)!important;
+  border-radius:22px!important;
+  padding:18px 18px 16px!important;
+  margin:0!important;
+  box-shadow:0 10px 24px rgba(80,43,15,.06)!important;
+}
+
+#genericOverlay .detail-item strong{
+  display:block!important;
+  margin-bottom:8px!important;
+  color:#9a3412!important;
+  font-size:13px!important;
+  letter-spacing:.04em!important;
+  text-transform:uppercase!important;
+}
+
+#genericOverlay .detail-item p{
+  margin:8px 0!important;
+  color:#4a2108!important;
+  line-height:1.45!important;
+}
+
+#genericOverlay .bullet-grid{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+  margin-top:12px!important;
+}
+
+#genericOverlay .bullet-card{
+  display:flex!important;
+  align-items:flex-start!important;
+  gap:10px!important;
+  padding:12px 14px!important;
+  border-radius:16px!important;
+  background:#fff7ed!important;
+  border:1px solid rgba(139,69,19,.14)!important;
+}
+
+#genericOverlay .bullet-icon{
+  width:28px!important;
+  min-width:28px!important;
+  height:28px!important;
+  border-radius:999px!important;
+  display:grid!important;
+  place-items:center!important;
+  background:linear-gradient(135deg,#7c2d12,#d97706)!important;
+  color:#fff7ed!important;
+  font-size:14px!important;
+  font-weight:950!important;
+}
+
+#genericOverlay .bullet-text{
+  color:#4a2108!important;
+  line-height:1.42!important;
+  font-weight:800!important;
+}
+
+#genericOverlay .detail-accent{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  margin-bottom:10px!important;
+  padding:8px 12px!important;
+  border-radius:999px!important;
+  background:#ffedd5!important;
+  color:#7c2d12!important;
+  font-weight:950!important;
+  border:1px solid rgba(139,69,19,.16)!important;
+}
+
+#genericOverlay .modal-nav{
+  margin-top:16px!important;
+}
+
+#genericOverlay #genericClose{
+  margin-top:18px!important;
+  min-width:140px!important;
+}
+
+@media(max-width:700px){
+  #genericOverlay .modal{
+    padding:22px 18px 20px!important;
+    border-radius:26px!important;
+  }
+
+  #genericOverlay #genericTitle{
+    font-size:clamp(28px,8vw,46px)!important;
+  }
+
+  #genericOverlay #genericLead{
+    font-size:18px!important;
+  }
+
+  #genericOverlay .detail-item{
+    padding:14px!important;
+    border-radius:18px!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1611,25 +1765,30 @@ function showRuleDetail(index){
   if(content){
     content.innerHTML=`
       <div class="detail-item">
-        <strong>${currentLang==="es"?"Descripción":"Description"}</strong><br>
-        ${item[1] || ""}
+        <strong>${currentLang==="es"?"Descripción":"Description"}</strong>
+        <p>${item[1] || ""}</p>
       </div>
 
       <div class="detail-item">
-        <strong>${currentLang==="es"?"Consecuencia de incumplir":"Consequence of non-compliance"}</strong><br>
-        ${detail.consequence || ""}
+        <strong>${currentLang==="es"?"Consecuencia de incumplir":"Consequence of non-compliance"}</strong>
+        <div class="detail-accent">⚠️ ${currentLang==="es"?"Riesgo crítico":"Critical risk"}</div>
+        <p>${detail.consequence || ""}</p>
       </div>
 
       <div class="detail-item">
-        <strong>${currentLang==="es"?"Qué debo hacer":"What I should do"}</strong><br>
-        ${detail.action || ""}
+        <strong>${currentLang==="es"?"Qué debo hacer":"What I should do"}</strong>
+        <div class="bullet-card" style="margin-top:10px;">
+          <div class="bullet-icon">✓</div>
+          <div class="bullet-text">${detail.action || ""}</div>
+        </div>
       </div>
 
       <div class="detail-item">
-        <strong>${currentLang==="es"?"Enfoque de seguridad":"Safety focus"}</strong><br>
-        ${currentLang==="es"
+        <strong>${currentLang==="es"?"Enfoque de seguridad":"Safety focus"}</strong>
+        <p>${currentLang==="es"
           ? "La prioridad siempre es detener el riesgo antes de continuar con la actividad."
           : "The priority is always to stop the risk before continuing the activity."}
+        </p>
       </div>
     `;
   }
@@ -1672,16 +1831,38 @@ function showContributionDetail(index){
   if(lead) lead.textContent=item[1] || "";
 
   const bullets=Array.isArray(item[3]) ? item[3] : [];
+  const sectionLabel=currentLang==="es" ? "Acción recomendada" : "Recommended action";
+  const practiceLabel=currentLang==="es" ? "Buenas prácticas" : "Best practices";
+
   if(content){
-    content.innerHTML=`<div class="detail-item">
-      <strong>${item[2] || ""}</strong>
-      ${bullets.map(x=>`<p>• ${x}</p>`).join("")}
-    </div>`;
+    content.innerHTML=`
+      <div class="detail-item">
+        <strong>${sectionLabel}</strong>
+        <div class="detail-accent">✨ ${item[2] || ""}</div>
+        <p>${currentLang==="es"
+          ? "Estas acciones ayudan a fortalecer la cultura de seguridad y a prevenir incidentes antes de que ocurran."
+          : "These actions help strengthen the safety culture and prevent incidents before they happen."}
+        </p>
+      </div>
+
+      <div class="detail-item">
+        <strong>${practiceLabel}</strong>
+        <div class="bullet-grid">
+          ${bullets.map(x=>`
+            <div class="bullet-card">
+              <div class="bullet-icon">✓</div>
+              <div class="bullet-text">${x}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
   }
 
   if(nav) nav.innerHTML="";
   if(overlay) overlay.style.display="flex";
 }
+
 function showScreen(s){
   if(s==="hr") s="leaderboard";
 
