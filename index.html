@@ -488,10 +488,10 @@ const CERTIFICATE_TEMPLATE_IMAGE = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAA
 
 if(!UI.es.navRecognition) UI.es.navRecognition = "Reconocimiento";
 if(!UI.en.navRecognition) UI.en.navRecognition = "Recognition";
-if(!UI.es.recognitionTitle) UI.es.recognitionTitle = "Generar reconocimiento";
-if(!UI.en.recognitionTitle) UI.en.recognitionTitle = "Generate recognition";
-if(!UI.es.recognitionLead) UI.es.recognitionLead = "Captura los datos del participante para generar el PDF y enviarlo por correo electrónico.";
-if(!UI.en.recognitionLead) UI.en.recognitionLead = "Enter participant information to generate the PDF and send it by email.";
+if(!UI.es.recognitionTitle) UI.es.recognitionTitle = "Enviar reconocimiento";
+if(!UI.en.recognitionTitle) UI.en.recognitionTitle = "Send recognition";
+if(!UI.es.recognitionLead) UI.es.recognitionLead = "Captura los datos del participante para enviar el reconocimiento por correo electrónico como imagen adjunta.";
+if(!UI.en.recognitionLead) UI.en.recognitionLead = "Enter participant information to send the recognition by email as an image attachment.";
 if(!UI.es.recognitionName) UI.es.recognitionName = "Nombre del participante";
 if(!UI.en.recognitionName) UI.en.recognitionName = "Participant name";
 if(!UI.es.recognitionEmail) UI.es.recognitionEmail = "Correo electrónico";
@@ -510,7 +510,7 @@ if(!UI.en.recognitionReady) UI.en.recognitionReady = "Request sent. The email ma
 let currentLang="es",currentQuestions=[],currentIndex=0,score=0,answered=false,participantName="",selectedCommitment="",criticalErrors=0,ritErrors=[],timerInterval=null,startTime=null,elapsedSeconds=0,tournamentMode=false,tournamentTurn=0,tournamentScores=[0,0],tournamentNames=["Equipo 1","Equipo 2"],genericMode="",genericIndex=0;
 const questionCount=5;
 
-const API_URL = "https://script.google.com/macros/s/AKfycbyAT3gyL9_b9rRrwOkSDrPN7JvJ4HLxbXemzu5vx2X8dciWgz7ufnxyOkmNufp50hH1/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzeyXRlRtUZP-CniA_jyh6M4NNF46V_q0GpJE9Cai3N0NXOCqJk44UFSZZqFRVEUSE/exec";
 const GOOGLE_SHEET_ID = "1TIT_32EnO8rP3jFUhyPnpfQ3hhdONvQhTjQW7UyB8Ew";
 let remoteIndividual = [];
 let remoteTeams = [];
@@ -890,6 +890,7 @@ function sendRecognitionByEmail(name, email){
       .replace(/\s+/g,"_")}.jpg`
   });
 }
+
 function isMobileDevice(){
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 }
@@ -919,15 +920,12 @@ async function generateRecognitionAndEmail(){
   if(btn) btn.disabled = true;
 
   try {
-    // El sitio solo manda datos ligeros.
-    // Apps Script genera la imagen JPEG desde la plantilla de Google Drive y la envía por correo.
     await sendRecognitionByEmail(name, email);
 
     if(status){
       status.textContent = t("recognitionReady") || "Solicitud enviada. El correo puede tardar unos segundos en llegar.";
       status.style.display = "block";
     }
-
   } catch(error){
     console.error("Recognition send error:", error);
     if(status){
