@@ -2078,12 +2078,24 @@ function getAnswerLogs(){
 function saveScore(e){
   let s;
   try{s=JSON.parse(localStorage.getItem("westernRitScores")||"[]")}catch(err){s=[]}
+
   s.push(e);
-  s.sort((a,b)=>b.score-a.score||(a.seconds||999999)-(b.seconds||999999));
-  localStorage.setItem("westernRitScores",JSON.stringify(s.slice(0,100)));
+  s=sortByBestScore(s);
+  localStorage.setItem("westernRitScores",JSON.stringify(s.slice(0,200)));
+
+  console.log("Saving individual score", e);
   postToSheet({type:"individual",...e});
-  setTimeout(refreshRemoteData,1200);
+
+  setTimeout(() => {
+    refreshRemoteData()
+      .then(() => {
+        renderTopThree();
+        renderLeaderboard();
+      })
+      .catch(err => console.warn("Post-save refresh failed", err));
+  },1800);
 }
+
 function saveTeamMatch(e){
   let s;
   try{s=JSON.parse(localStorage.getItem("westernTeamScores")||"[]")}catch(err){s=[]}
@@ -2105,13 +2117,50 @@ function logAnswer(q,ok){
   localStorage.setItem("westernAnswerLogs",JSON.stringify(s.slice(-1000)));
   postToSheet({type:"respuesta",category:q.category,rule:q.rule,severity:q.severity,correct:!!ok});
 }
-function renderTopThree(){
-  const box=document.getElementById("homeTopThree");
-  if(!box) return;
 
-  let scores=getScores();
+function makeRecordId(prefix){
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,10)}`;
+}
 
-  scores=[...scores]
+function parseScoreNumber(value){
+  const n=Number(value);
+  return isNaN(n) ? 0 : n;
+}
+
+function parseSecondsFromTime(value){
+  if(typeof value === "number") return value;
+  const text=String(value || "").trim();
+  if(!text) return 999999;
+  const parts=text.split(":").map(x=>Number(x));
+  if(parts.length===2 && !parts.some(isNaN)){
+    return parts[0]*60 + parts[1];
+  }
+  return 999999;
+}
+
+function normalizeForRanking(item){
+  const score=parseScoreNumber(item.score);
+  const max=parseScoreNumber(item.max || 5) || 5;
+  const percent=item.percent !== undefined && item.percent !== ""
+    ? parseScoreNumber(item.percent)
+    : Math.round((score / max) * 100);
+
+  const seconds=item.seconds !== undefined && item.seconds !== ""
+    ? parseScoreNumber(item.seconds)
+    : parseSecondsFromTime(item.time);
+
+  return {
+    ...item,
+    score,
+    max,
+    percent,
+    seconds
+  };
+}
+
+function sortByBestScore(records){
+  return [...(records || [])]
+    .map(normalizeForRanking)
     .filter(x => x && (x.name || x.score !== undefined))
     .sort((a,b)=>{
       const scoreDiff=Number(b.score || 0)-Number(a.score || 0);
@@ -2120,12 +2169,21 @@ function renderTopThree(){
       const percentDiff=Number(b.percent || 0)-Number(a.percent || 0);
       if(percentDiff!==0) return percentDiff;
 
-      return Number(a.seconds || 999999)-Number(b.seconds || 999999);
-    })
-    .slice(0,3);
+      const timeDiff=Number(a.seconds || 999999)-Number(b.seconds || 999999);
+      if(timeDiff!==0) return timeDiff;
 
-  box.innerHTML=scores.length
-    ? scores.map((x,i)=>`
+      return String(a.date || "").localeCompare(String(b.date || ""));
+    });
+}
+
+function renderTopThree(){
+  const box=document.getElementById("homeTopThree");
+  if(!box) return;
+
+  const top=sortByBestScore(getScores()).slice(0,3);
+
+  box.innerHTML=top.length
+    ? top.map((x,i)=>`
       <div class="top-three-item">
         <span>${i+1}. ${x.name || ""}</span>
         <span>${x.score || 0}/${x.max || 5} · ${x.time || "--"}</span>
@@ -2135,14 +2193,7 @@ function renderTopThree(){
 }
 
 function renderLeaderboard(){
-  let s = getScores();
-
-  // Sort all records from Google Sheets or localStorage
-  s = [...s].sort((a,b) => {
-    const scoreDiff = Number(b.score || 0) - Number(a.score || 0);
-    if(scoreDiff !== 0) return scoreDiff;
-    return Number(a.seconds || 999999) - Number(b.seconds || 999999);
-  });
+  const s=sortByBestScore(getScores());
 
   const body = document.getElementById("leaderboardBody");
   if(body){
@@ -2161,6 +2212,7 @@ function renderLeaderboard(){
       : `<tr><td colspan="5" class="center">${t("noRegistered")}</td></tr>`;
   }
 }
+
 function renderHRBoard(){
   const at=document.getElementById("accuracyTitle");
   if(at) at.textContent=t("accuracyTitle");
@@ -2291,20 +2343,19 @@ function calculateProjectedBoardRank(entry){
   }
 
   board.push(entry);
-  board.sort((a,b)=>{
-    const scoreDiff=Number(b.score||0)-Number(a.score||0);
-    if(scoreDiff!==0) return scoreDiff;
-    return Number(a.seconds||999999)-Number(b.seconds||999999);
-  });
+  const sorted=sortByBestScore(board);
 
-  const idx=board.findIndex(x=>
-    x.name===entry.name &&
-    Number(x.score||0)===Number(entry.score||0) &&
-    Number(x.seconds||0)===Number(entry.seconds||0) &&
-    String(x.date||"")===String(entry.date||"")
+  const idx=sorted.findIndex(x=>
+    x.recordId===entry.recordId ||
+    (
+      x.name===entry.name &&
+      Number(x.score||0)===Number(entry.score||0) &&
+      Number(x.seconds||0)===Number(entry.seconds||0) &&
+      String(x.date||"")===String(entry.date||"")
+    )
   );
 
-  return idx>=0 ? idx+1 : board.length;
+  return idx>=0 ? idx+1 : sorted.length;
 }
 
 function getRankMessage(place){
@@ -2329,6 +2380,8 @@ function finishGame(){
   let msg=percent>=90?t("sheriffExpert"):percent>=75?t("cowboyStrong"):t("tryAgain");
 
   const entry={
+    recordId: makeRecordId("individual"),
+    clientVersion: CLIENT_VERSION || "HTML",
     name:participantName,
     score:raw,
     max,
@@ -2363,9 +2416,6 @@ function finishGame(){
   renderTopThree();
 }
 
-/* =========================
-   Safe initial render
-========================= */
 function initializeApp(){
   try{
     console.log("Loaded", CLIENT_VERSION, API_URL);
