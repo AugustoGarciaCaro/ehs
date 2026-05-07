@@ -642,6 +642,72 @@ header .nav{
   }
 }
 
+
+/* =========================
+   Fixed language selector outside content
+========================= */
+#fixedLangButtons.fixed-language-buttons{
+  position:fixed!important;
+  top:auto!important;
+  bottom:14px!important;
+  right:14px!important;
+  z-index:99999!important;
+  display:flex!important;
+  gap:4px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:auto!important;
+  min-width:0!important;
+  height:auto!important;
+  padding:4px!important;
+  margin:0!important;
+  border:1px solid rgba(139,69,19,.22)!important;
+  border-radius:999px!important;
+  background:rgba(255,247,237,.92)!important;
+  box-shadow:0 8px 20px rgba(80,43,15,.12)!important;
+  backdrop-filter:blur(8px)!important;
+}
+
+#fixedLangButtons.fixed-language-buttons button{
+  appearance:none!important;
+  width:34px!important;
+  min-width:34px!important;
+  max-width:34px!important;
+  height:28px!important;
+  min-height:28px!important;
+  padding:0!important;
+  margin:0!important;
+  border-radius:999px!important;
+  font-size:11px!important;
+  line-height:1!important;
+  font-weight:950!important;
+  box-shadow:none!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+
+#fixedLangButtons.fixed-language-buttons .lang-active{
+  background:linear-gradient(135deg,#7c2d12,#d97706)!important;
+  color:#fff7ed!important;
+  border-color:#f2c078!important;
+}
+
+#fixedLangButtons.fixed-language-buttons .lang-inactive{
+  background:transparent!important;
+  color:#7c5a3a!important;
+  border-color:transparent!important;
+}
+
+@media(max-width:600px){
+  #fixedLangButtons.fixed-language-buttons{
+    bottom:10px!important;
+    right:10px!important;
+    transform:scale(.9)!important;
+    transform-origin:bottom right!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -649,7 +715,7 @@ header .nav{
   <button id="btnLangEs" onclick="setLanguage('es')" aria-label="Español">ES</button>
   <button id="btnLangEn" onclick="setLanguage('en')" aria-label="English">EN</button>
 </div>
-<header><div class="nav"><div class="brand"><div class="star">⭐</div><div>Reglas Cardinales del Viejo Oeste<small id="brandSub"></small></div></div><div id="navButtons"></div><div class="mobile-menu-wrap"><select id="mobileMenuSelect" class="mobile-menu-select" onchange="handleMobileMenuChange(this.value)"></select></div></div></header>
+<header><div class="nav"><div class="brand"><div class="star">⭐</div><div><span id="brandTitle">Reglas Cardinales del Viejo Oeste</span><small id="brandSub"></small></div></div><div id="navButtons"></div><div class="mobile-menu-wrap"><select id="mobileMenuSelect" class="mobile-menu-select" onchange="handleMobileMenuChange(this.value)"></select></div></div></header>
 <main class="container">
 <section id="homeScreen"><div class="hero"><div><div id="badgeHome" class="badge"></div><h1 id="mainTitle"></h1><p id="intro" class="lead"></p><div class="name-box"><input id="participantName" maxlength="40"><button id="startBtn" class="btn-primary" onclick="startGame()"></button><div id="nameError" class="name-error"></div></div> <button id="homeTournamentBtn" class="btn-secondary" onclick="showScreen('tournament')"></button></div><div class="card"><div class="card-content"><div class="stats"><div class="stat">⭐<strong>5</strong><span id="statRules"></span></div><div class="stat">🎯<strong>5</strong><span id="statQuestions"></span></div><div class="stat challenge-stat" onclick="showAllChallenges()">🤠<strong id="totalChallenges">50</strong><span id="totalChallengesLabel"></span><br><small id="totalChallengesHint"></small></div></div><div class="how"><h3 id="howTitle"></h3><div id="howList"></div></div><div class="top-three"><h3 id="top3Title"></h3><div id="homeTopThree"></div></div></div></div></div></section>
 <section id="rulesScreen" class="hidden"><div class="center"><div class="badge">📜</div><h2 id="rulesTitle"></h2><p id="rulesLead" class="lead"></p></div><div id="rulesGrid" class="grid"></div></section>
@@ -925,10 +991,10 @@ async function refreshRemoteData(){
   renderLeaderboard();
   renderHRBoard();
 
-  const stamp = new Date().toLocaleTimeString("es-MX");
+  const stamp = new Date().toLocaleTimeString(currentLang==="es"?"es-MX":"en-US");
   const status = document.getElementById("refreshStatus");
   const hrStatus = document.getElementById("refreshHRStatus");
-  const msg = `✅ ${t("boardUpdated") || "Tablero actualizado"} · ${stamp} · Individual: ${remoteIndividual.length} · Torneo: ${remoteTeams.length} · Respuestas: ${remoteAnswers.length}`;
+  const msg = `✅ ${t("boardUpdated") || (currentLang==="es"?"Tablero actualizado":"Board updated")} · ${stamp} · ${currentLang==="es"?"Individual":"Individual"}: ${remoteIndividual.length} · ${currentLang==="es"?"Torneo":"Tournament"}: ${remoteTeams.length} · ${currentLang==="es"?"Respuestas":"Answers"}: ${remoteAnswers.length}`;
   if(status) status.textContent = msg;
   if(hrStatus) hrStatus.textContent = msg;
 }
@@ -961,6 +1027,12 @@ function setLanguage(lang){
   if(leaderboard && !leaderboard.classList.contains("hidden")){
     if(typeof renderLeaderboard === "function") renderLeaderboard();
     if(typeof renderHRBoard === "function") renderHRBoard();
+  }
+
+  const final=document.getElementById("finalScreen");
+  if(final && !final.classList.contains("hidden")){
+    const duelLabel=document.getElementById("duelsWonLabel");
+    if(duelLabel) duelLabel.textContent=currentLang==="es"?"Lugar en tablero":"Board ranking";
   }
 
   if(typeof refreshRemoteData === "function"){
@@ -1044,6 +1116,7 @@ function applyLanguage(){
     if(el) el.textContent=t(key);
   };
 
+  setText("brandTitle","mainTitle");
   setText("brandSub","brandSub");
 
   const nav=document.getElementById("navButtons");
@@ -1141,7 +1214,7 @@ function applyLanguage(){
   setText("recognitionGenerateBtn","recognitionGenerate");
   setText("recognitionCloseBtn","recognitionClose");
   const rn=document.getElementById("recognitionNameInput"); if(rn) rn.placeholder=t("recognitionName");
-  const reml=document.getElementById("recognitionEmailInput"); if(reml) reml.placeholder="nombre@correo.com";
+  const reml=document.getElementById("recognitionEmailInput"); if(reml) reml.placeholder=currentLang==="es"?"nombre@correo.com":"name@email.com";
   const re=document.getElementById("recognitionError"); if(re) re.textContent=t("recognitionError");
   setText("refreshBoardBtn","refreshBoard"); const rb=document.getElementById("refreshBoardBtn"); if(rb && !rb.textContent.includes("🔄")) rb.textContent="🔄 "+rb.textContent;
   setText("refreshHRBtn","refreshBoard"); const rhb=document.getElementById("refreshHRBtn"); if(rhb && !rhb.textContent.includes("🔄")) rhb.textContent="🔄 "+rhb.textContent;
@@ -1159,8 +1232,8 @@ function applyLanguage(){
   setText("saloonSign","saloonSign");
 
   renderRules();
-  renderContributions();
-  renderCommitment();
+  renderContribute();
+  renderCommitments();
   renderTopThree();
   if(!document.getElementById("leaderboardScreen").classList.contains("hidden")) renderLeaderboard();
   if(!document.getElementById("hrScreen").classList.contains("hidden")) renderHRBoard();
@@ -1282,7 +1355,7 @@ async function generateRecognitionAndEmail(){
 
   if(!name || !isValidEmail(email)){
     if(err) err.style.display = "block";
-    setRecognitionStatus("error", "❌ Captura nombre y correo electrónico para continuar.");
+    setRecognitionStatus("error", t("recognitionError") || (currentLang==="es"?"❌ Captura nombre y correo electrónico para continuar.":"❌ Enter name and email address to continue."));
     return;
   }
 
@@ -1290,10 +1363,10 @@ async function generateRecognitionAndEmail(){
 
   if(btn){
     btn.disabled = true;
-    btn.textContent = "Enviando...";
+    btn.textContent = currentLang==="es" ? "Enviando..." : "Sending...";
   }
 
-  setRecognitionStatus("loading", "⏳ Enviando reconocimiento, por favor espera...");
+  setRecognitionStatus("loading", t("recognitionSending") || (currentLang==="es"?"⏳ Enviando reconocimiento, por favor espera...":"⏳ Sending recognition, please wait..."));
 
   try {
     console.log("Sending recognition payload", {
@@ -1306,19 +1379,19 @@ async function generateRecognitionAndEmail(){
 
     await sendRecognitionByEmail(name, email);
 
-    setRecognitionStatus("success", "✅ Reconocimiento enviado correctamente. El correo puede tardar unos segundos en llegar.");
+    setRecognitionStatus("success", t("recognitionReady") || (currentLang==="es"?"✅ Reconocimiento enviado correctamente. El correo puede tardar unos segundos en llegar.":"✅ Recognition sent successfully. The email may take a few seconds to arrive."));
 
     if(nameInput) nameInput.value = "";
     if(emailInput) emailInput.value = "";
 
   } catch(error){
     console.error("Recognition send error:", error);
-    setRecognitionStatus("error", "❌ No se pudo enviar el reconocimiento. Revisa la conexión e intenta nuevamente.");
+    setRecognitionStatus("error", currentLang==="es"?"❌ No se pudo enviar el reconocimiento. Revisa la conexión e intenta nuevamente.":"❌ The recognition could not be sent. Check the connection and try again.");
 
   } finally {
     if(btn){
       btn.disabled = false;
-      btn.textContent = t("recognitionGenerate") || "Enviar reconocimiento por email";
+      btn.textContent = t("recognitionGenerate") || (currentLang==="es"?"Enviar reconocimiento por email":"Send recognition by email");
     }
   }
 }
@@ -1417,6 +1490,22 @@ function renderCommitments(){
     const desc=currentLang==="es"?item.esDesc:item.enDesc;
     const safe=title.replace(/'/g,"\\'");
     return `<div class="commitment-option" onclick="selectCommitment('${safe}')">
+      <div style="font-size:40px;margin-bottom:10px;">${item.emoji}</div>
+      <h3 style="margin:0 0 8px;color:#7c2d12;">${title}</h3>
+      <p style="margin:0;color:#7c5a3a;font-weight:800;line-height:1.35;">${desc}</p>
+    </div>`;
+  }).join("");
+}
+
+function renderCommitments(){
+  const grid=document.getElementById("commitmentGrid");
+  if(!grid) return;
+
+  grid.innerHTML=getRichCommitmentOptions().map(item=>{
+    const title=currentLang==="es"?item.es:item.en;
+    const desc=currentLang==="es"?item.esDesc:item.enDesc;
+    const safe=title.replace(/'/g,"\\'");
+    return `<div class="commitment-option" onclick="selectCommitment('${safe}')">
       <div style="font-size:38px;margin-bottom:10px;">${item.emoji}</div>
       <h3 style="margin:0 0 8px;color:#7c2d12;">${title}</h3>
       <p style="margin:0;color:#7c5a3a;font-weight:800;line-height:1.35;">${desc}</p>
@@ -1449,10 +1538,64 @@ function renderRules(){
   }).join("");
 }
 
+function getRuleDetailData(index){
+  const data = {
+    es: [
+      {
+        consequence: "Puede considerarse una conducta de alto riesgo que ponga en peligro la seguridad propia, de otros compañeros o las instalaciones.",
+        action: "Detén la actividad, reporta la condición y solicita apoyo del líder del área o de EHS antes de continuar."
+      },
+      {
+        consequence: "Remover, alterar o ignorar dispositivos de seguridad puede generar lesiones graves y acciones disciplinarias conforme a la severidad del caso.",
+        action: "No operes el equipo si una guarda, bloqueo, sensor o control de seguridad no está instalado y funcional."
+      },
+      {
+        consequence: "Intervenir equipos con energías peligrosas sin controles puede ocasionar atrapamientos, electrocución, quemaduras o lesiones fatales.",
+        action: "Aplica bloqueo y etiquetado LOTO, verifica energía cero y sigue el procedimiento autorizado antes de intervenir."
+      },
+      {
+        consequence: "Realizar trabajos de alto riesgo sin permiso puede provocar incidentes graves y generar investigación/correctivo conforme al Reglamento Interior de Trabajo.",
+        action: "Asegura permiso escrito, evaluación previa, controles definidos y EPP requerido antes de iniciar."
+      },
+      {
+        consequence: "No controlar derrames, emisiones o contaminantes puede causar riesgos a las personas, impactos ambientales y desviaciones de cumplimiento.",
+        action: "Reporta, señaliza, contiene el riesgo y sigue el procedimiento ambiental o de seguridad aplicable."
+      }
+    ],
+    en: [
+      {
+        consequence: "It may be considered a high-risk behavior that endangers personal safety, coworkers, or company facilities.",
+        action: "Stop the activity, report the condition, and request support from the area leader or EHS before continuing."
+      },
+      {
+        consequence: "Removing, altering, or ignoring safety devices can lead to serious injuries and disciplinary action depending on case severity.",
+        action: "Do not operate equipment if a guard, lock, sensor, or safety control is not installed and functional."
+      },
+      {
+        consequence: "Servicing equipment with hazardous energy without controls can cause entrapment, electrocution, burns, or fatal injuries.",
+        action: "Apply Lockout/Tagout, verify zero energy, and follow the authorized procedure before servicing."
+      },
+      {
+        consequence: "Performing high-risk work without a permit can cause serious incidents and may lead to investigation/corrective action under internal work rules.",
+        action: "Ensure written authorization, prior assessment, defined controls, and required PPE before starting."
+      },
+      {
+        consequence: "Failing to control spills, emissions, or contaminants can create people safety risks, environmental impact, and compliance deviations.",
+        action: "Report, mark the area, contain the risk, and follow the applicable environmental or safety procedure."
+      }
+    ]
+  };
+
+  return data[currentLang][index] || data.es[index] || {};
+}
+
+
 function showRuleDetail(index){
   const rules=t("rules") || [];
   const item=rules[index];
   if(!item) return;
+
+  const detail=getRuleDetailData(index);
 
   const badge=document.getElementById("genericBadge");
   const title=document.getElementById("genericTitle");
@@ -1461,17 +1604,34 @@ function showRuleDetail(index){
   const nav=document.getElementById("genericNav");
   const overlay=document.getElementById("genericOverlay");
 
-  if(badge) badge.textContent="📜 Regla " + (index+1);
+  if(badge) badge.textContent=currentLang==="es" ? "📜 Regla " + (index+1) : "📜 Rule " + (index+1);
   if(title) title.textContent=item[0] || "";
   if(lead) lead.textContent=item[1] || "";
 
   if(content){
-    content.innerHTML=`<div class="detail-item">
-      <strong>${currentLang==="es"?"Aplicación práctica":"Practical application"}</strong><br>
-      ${currentLang==="es"
-        ? "Detén la actividad si la regla no se cumple, reporta la condición y pide apoyo del líder o de EHS."
-        : "Stop the activity if the rule is not met, report the condition, and ask your leader or EHS for support."}
-    </div>`;
+    content.innerHTML=`
+      <div class="detail-item">
+        <strong>${currentLang==="es"?"Descripción":"Description"}</strong><br>
+        ${item[1] || ""}
+      </div>
+
+      <div class="detail-item">
+        <strong>${currentLang==="es"?"Consecuencia de incumplir":"Consequence of non-compliance"}</strong><br>
+        ${detail.consequence || ""}
+      </div>
+
+      <div class="detail-item">
+        <strong>${currentLang==="es"?"Qué debo hacer":"What I should do"}</strong><br>
+        ${detail.action || ""}
+      </div>
+
+      <div class="detail-item">
+        <strong>${currentLang==="es"?"Enfoque de seguridad":"Safety focus"}</strong><br>
+        ${currentLang==="es"
+          ? "La prioridad siempre es detener el riesgo antes de continuar con la actividad."
+          : "The priority is always to stop the risk before continuing the activity."}
+      </div>
+    `;
   }
 
   if(nav) nav.innerHTML="";
@@ -1535,21 +1695,10 @@ function showScreen(s){
 
   if(typeof renderMobileMenu === "function") renderMobileMenu();
 
-  if(s==="home" && typeof renderTopThree === "function"){
-    renderTopThree();
-  }
-
-  if(s==="rules" && typeof renderRules === "function"){
-    renderRules();
-  }
-
-  if(s==="contribute" && typeof renderContribute === "function"){
-    renderContribute();
-  }
-
-  if(s==="commitment" && typeof renderCommitments === "function"){
-    renderCommitments();
-  }
+  if(s==="home" && typeof renderTopThree === "function") renderTopThree();
+  if(s==="rules" && typeof renderRules === "function") renderRules();
+  if(s==="contribute" && typeof renderContribute === "function") renderContribute();
+  if(s==="commitment" && typeof renderCommitments === "function") renderCommitments();
 
   if(s==="leaderboard"){
     if(typeof renderTopThree === "function") renderTopThree();
@@ -1750,7 +1899,7 @@ function renderHRBoard(){
   const agg={};
 
   logs.forEach(x=>{
-    const k=x.category || x.rule || "Sin categoría";
+    const k=x.category || x.rule || (currentLang==="es"?"Sin categoría":"Uncategorized");
     agg[k]=agg[k]||{total:0,correct:0};
     agg[k].total++;
     if(x.correct) agg[k].correct++;
@@ -1836,6 +1985,24 @@ function showAllChallenges(){
   if(nav) nav.innerHTML="";
   if(overlay) overlay.style.display="flex";
 }
+
+
+
+
+
+function getDifficultyLabel(item){
+  const sev=String(item.severity||"").toLowerCase();
+  if(sev.includes("crítico") || sev.includes("critical")) return currentLang==="es" ? "Difícil" : "Hard";
+  if(sev.includes("alto") || sev.includes("high")) return currentLang==="es" ? "Intermedio" : "Medium";
+  return currentLang==="es" ? "Básico" : "Basic";
+}
+
+function cleanScenarioText(title){
+  return String(title || "")
+    .replace(/\s+—\s*Escenario\s*\d+/gi,"")
+    .replace(/\s+—\s*Scenario\s*\d+/gi,"");
+}
+
 
 function closeRitOverlay(){document.getElementById("ritOverlay").style.display="none"}
 function selectCommitment(c){
