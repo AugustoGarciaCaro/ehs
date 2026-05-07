@@ -615,6 +615,33 @@ header .nav{
   }
 }
 
+
+/* =========================
+   Language selector moved away from header
+========================= */
+#fixedLangButtons.fixed-language-buttons{
+  top:auto!important;
+  bottom:14px!important;
+  right:14px!important;
+  transform:none!important;
+}
+
+@media(max-width:600px){
+  #fixedLangButtons.fixed-language-buttons{
+    bottom:10px!important;
+    right:10px!important;
+    transform:scale(.9)!important;
+    transform-origin:bottom right!important;
+  }
+}
+
+/* Header no longer needs clearance for language selector */
+@media(min-width:901px){
+  #navButtons{
+    padding-right:0!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -624,7 +651,7 @@ header .nav{
 </div>
 <header><div class="nav"><div class="brand"><div class="star">⭐</div><div>Reglas Cardinales del Viejo Oeste<small id="brandSub"></small></div></div><div id="navButtons"></div><div class="mobile-menu-wrap"><select id="mobileMenuSelect" class="mobile-menu-select" onchange="handleMobileMenuChange(this.value)"></select></div></div></header>
 <main class="container">
-<section id="homeScreen"><div class="hero"><div><div id="badgeHome" class="badge"></div><h1 id="mainTitle"></h1><p id="intro" class="lead"></p><div class="name-box"><input id="participantName" maxlength="40"><button id="startBtn" class="btn-primary" onclick="startGame()"></button><div id="nameError" class="name-error"></div></div><button id="viewRulesBtn" class="btn-secondary" onclick="showScreen('rules')"></button> <button id="contributeBtnHome" class="btn-secondary" onclick="showScreen('contribute')"></button> <button id="homeTournamentBtn" class="btn-secondary" onclick="showScreen('tournament')"></button> <button id="homeRecognitionBtn" class="btn-secondary" onclick="openRecognitionModal()"></button></div><div class="card"><div class="card-content"><div class="stats"><div class="stat">⭐<strong>5</strong><span id="statRules"></span></div><div class="stat">🎯<strong>5</strong><span id="statQuestions"></span></div><div class="stat challenge-stat" onclick="showAllChallenges()">🤠<strong id="totalChallenges">50</strong><span id="totalChallengesLabel"></span><br><small id="totalChallengesHint"></small></div></div><div class="how"><h3 id="howTitle"></h3><div id="howList"></div></div><div class="top-three"><h3 id="top3Title"></h3><div id="homeTopThree"></div></div></div></div></div></section>
+<section id="homeScreen"><div class="hero"><div><div id="badgeHome" class="badge"></div><h1 id="mainTitle"></h1><p id="intro" class="lead"></p><div class="name-box"><input id="participantName" maxlength="40"><button id="startBtn" class="btn-primary" onclick="startGame()"></button><div id="nameError" class="name-error"></div></div> <button id="homeTournamentBtn" class="btn-secondary" onclick="showScreen('tournament')"></button></div><div class="card"><div class="card-content"><div class="stats"><div class="stat">⭐<strong>5</strong><span id="statRules"></span></div><div class="stat">🎯<strong>5</strong><span id="statQuestions"></span></div><div class="stat challenge-stat" onclick="showAllChallenges()">🤠<strong id="totalChallenges">50</strong><span id="totalChallengesLabel"></span><br><small id="totalChallengesHint"></small></div></div><div class="how"><h3 id="howTitle"></h3><div id="howList"></div></div><div class="top-three"><h3 id="top3Title"></h3><div id="homeTopThree"></div></div></div></div></div></section>
 <section id="rulesScreen" class="hidden"><div class="center"><div class="badge">📜</div><h2 id="rulesTitle"></h2><p id="rulesLead" class="lead"></p></div><div id="rulesGrid" class="grid"></div></section>
 <section id="contributeScreen" class="hidden"><div class="center"><div class="badge">🤠</div><h2 id="contributeTitle"></h2><p id="contributeLead" class="lead"></p></div><div id="contributeGrid" class="grid"></div></section>
 <section id="scenarioScreen" class="hidden"><div class="game-top"><div><strong id="gameLabel"></strong><h2 id="questionCounter"></h2></div><div><span class="metric">🏆 <span id="rewardLabel"></span>: <span id="scoreText">0</span></span> <span class="metric timer">⏱️ <span id="timerText">00:00</span></span></div></div><div id="turnBanner" class="turn-banner"><small id="turnBannerLabel"></small><strong id="turnBannerName"></strong><div style="margin-top:10px;font-size:20px"><span id="liveTeam1"></span> <strong id="liveTeam1Score">0</strong> · <span id="liveTeam2"></span> <strong id="liveTeam2Score">0</strong></div></div><div class="progress-wrap"><div id="progressBar" class="progress"></div></div><div class="card"><div class="card-content"><div id="severityBox"></div><div id="visualBox" class="visual"></div><h3 id="scenarioTitle"></h3><p id="scenarioText" class="lead"></p><div id="optionsBox" class="options"></div><div id="feedbackBox" class="feedback"><h3 id="feedbackTitle"></h3><p id="feedbackText"></p><button id="nextBtn" class="btn-primary" onclick="nextQuestion()"></button></div></div></div></section>
@@ -1035,10 +1062,7 @@ function applyLanguage(){
   setText("mainTitle","mainTitle");
   setText("intro","intro");
   setText("startBtn","start");
-  setText("viewRulesBtn","viewRules");
-  setText("contributeBtnHome","navContribute");
   setText("homeTournamentBtn","playTournament");
-  setText("homeRecognitionBtn","navRecognition");
   setText("statRules","statRules");
   setText("statQuestions","statQuestions");
   setText("totalChallengesLabel","totalChallengesLabel");
