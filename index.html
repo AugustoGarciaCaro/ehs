@@ -440,71 +440,15 @@ table {
   color: #7c5a3a!important;
 }
 
-
-.header-language-buttons{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  justify-content:center;
-  flex-wrap:wrap;
-}
-.header-language-buttons button{
-  min-width:105px;
-  padding:9px 12px;
-  font-size:13px;
-}
-@media(max-width:900px){
-  .header-language-buttons{
-    width:100%;
-    display:grid!important;
-    grid-template-columns:1fr 1fr;
-    gap:8px;
-  }
-  .header-language-buttons button{
-    width:100%;
-    min-height:44px;
-  }
-}
-
-
-/* =========================
-   Header language buttons fix
-========================= */
-.header-language-buttons{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  justify-content:center;
-  flex-wrap:wrap;
-}
-
-.header-language-buttons button{
-  min-width:105px;
-  padding:9px 12px;
-  font-size:13px;
-}
-
-@media(max-width:900px){
-  .header-language-buttons{
-    width:100%;
-    display:grid!important;
-    grid-template-columns:1fr 1fr;
-    gap:8px;
-  }
-  .header-language-buttons button{
-    width:100%;
-    min-height:44px;
-  }
-}
-
 </style>
 </head>
 <body>
-<header><div class="nav"><div class="brand"><div class="star">⭐</div><div>Reglas Cardinales del Viejo Oeste<small id="brandSub"></small></div></div><div id="navButtons"></div><div id="headerLangButtons" class="header-language-buttons language-buttons"><button id="btnLangEs" onclick="setLanguage('es')">Español</button><button id="btnLangEn" onclick="setLanguage('en')">English</button></div><div class="mobile-menu-wrap"><select id="mobileMenuSelect" class="mobile-menu-select" onchange="handleMobileMenuChange(this.value)"></select></div></div></header>
+<header><div class="nav"><div class="brand"><div class="star">⭐</div><div>Reglas Cardinales del Viejo Oeste<small id="brandSub"></small></div></div><div id="navButtons"></div><div class="mobile-menu-wrap"><select id="mobileMenuSelect" class="mobile-menu-select" onchange="handleMobileMenuChange(this.value)"></select></div></div></header>
 <main class="container">
-<section id="homeScreen"><div class="hero"><div><div id="badgeHome" class="badge"></div><h1 id="mainTitle"></h1><p id="intro" class="lead"></p><div class="name-box"><input id="participantName" maxlength="40"><button id="startBtn" class="btn-primary" onclick="startGame()"></button><div id="nameError" class="name-error"></div></div><button id="viewRulesBtn" class="btn-secondary" onclick="showScreen('rules')"></button> <button id="contributeBtnHome" class="btn-secondary" onclick="showScreen('contribute')"></button> <button id="homeTournamentBtn" class="btn-secondary" onclick="showScreen('tournament')"></button> <button id="homeRecognitionBtn" class="btn-secondary" onclick="openRecognitionModal()"></button></div><div class="card"><div class="card-content"><div class="stats"><div class="stat">⭐<strong>5</strong><span id="statRules"></span></div><div class="stat">🎯<strong>5</strong><span id="statQuestions"></span></div><div class="stat challenge-stat" onclick="showAllChallenges()">🤠<strong id="totalChallenges">50</strong><span id="totalChallengesLabel"></span><br><small id="totalChallengesHint"></small></div></div><div class="how"><h3 id="howTitle"></h3><div id="howList"></div></div><div class="top-three">
+<section id="homeScreen"><div class="hero"><div><div id="badgeHome" class="badge"></div><h1 id="mainTitle"></h1><p id="intro" class="lead"></p><div class="name-box language-buttons"><button id="btnLangEs" onclick="setLanguage('es')">Español</button><button id="btnLangEn" onclick="setLanguage('en')">English</button></div><div class="name-box"><input id="participantName" maxlength="40"><button id="startBtn" class="btn-primary" onclick="startGame()"></button><div id="nameError" class="name-error"></div></div><button id="viewRulesBtn" class="btn-secondary" onclick="showScreen('rules')"></button> <button id="contributeBtnHome" class="btn-secondary" onclick="showScreen('contribute')"></button> <button id="homeTournamentBtn" class="btn-secondary" onclick="showScreen('tournament')"></button> <button id="homeRecognitionBtn" class="btn-secondary" onclick="openRecognitionModal()"></button></div><div class="card"><div class="card-content"><div class="stats"><div class="stat">⭐<strong>5</strong><span id="statRules"></span></div><div class="stat">🎯<strong>5</strong><span id="statQuestions"></span></div><div class="stat challenge-stat" onclick="showAllChallenges()">🤠<strong id="totalChallenges">50</strong><span id="totalChallengesLabel"></span><br><small id="totalChallengesHint"></small></div></div><div class="how"><h3 id="howTitle"></h3><div id="howList"></div></div><div class="top-three">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
     <h3 id="top3Title" style="margin:0;"></h3>
+    <button id="refreshTop3Btn" class="btn-secondary" style="padding:8px 12px;font-size:13px;" onclick="refreshAllBoards()">🔄 Actualizar</button>
   </div>
   <div id="homeTopThree"></div>
 </div></div></div></div></section>
@@ -1189,7 +1133,6 @@ function syncCombinedHRCharts(){
 
 function showScreen(s){["home","rules","contribute","scenario","commitment","tournament","leaderboard","hr","final"].forEach(x=>document.getElementById(x+"Screen").classList.add("hidden"));document.getElementById(s+"Screen").classList.remove("hidden");renderMobileMenu();
   if(s==="home") renderHomeTopThree();
-  if(s==="leaderboard"){ renderHomeTopThree(); renderLeaderboard(); renderTeamLeaderboard(); renderHRBoard(); }
   if(s==="leaderboard"){renderLeaderboard();startAutoRefresh();}if(s==="hr"){renderHRBoard();
   syncCombinedHRCharts();startAutoRefresh();}if(s==="home")renderTopThree();window.scrollTo({top:0,behavior:"smooth"})}
 function renderRules(){document.getElementById("rulesGrid").innerHTML=t("rules").map((r,i)=>`<div class="info-card rule-click" onclick="openRule(${i})"><strong>⭐ ${r[0]}</strong><br>${r[1]}<br><br><small><strong>${t("clickRule")}</strong></small></div>`).join("")}
@@ -1239,10 +1182,53 @@ function startAutoRefresh(){
 }
 
 async 
+function normalizeSheetRows(rows){
+  return Array.isArray(rows) ? rows : [];
+}
+
+function getRemoteRowsByType(type){
+  if(!remoteData) return [];
+  if(type === "individual") return normalizeSheetRows(remoteData.individualRows || remoteData.individual || []);
+  if(type === "torneo") return normalizeSheetRows(remoteData.teamRows || remoteData.torneo || remoteData.tournament || []);
+  if(type === "respuestas") return normalizeSheetRows(remoteData.respuestaRows || remoteData.respuestas || remoteData.answers || []);
+  return [];
+}
+
+function refreshAllBoards(){
+  return loadRemoteData(true).then(() => {
+    renderHomeTopThree();
+    renderLeaderboard();
+    renderTeamLeaderboard();
+    renderHRBoard();
+    syncCombinedHRCharts();
+
+    const now = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+    const msg = "✅ Tableros actualizados · " + now;
+
+    const refreshStatus = document.getElementById("refreshStatus");
+    const refreshHRStatus = document.getElementById("refreshHRStatus");
+
+    if(refreshStatus) refreshStatus.textContent = msg;
+    if(refreshHRStatus) refreshHRStatus.textContent = msg;
+
+    return true;
+  }).catch(error => {
+    console.error("Refresh all boards error:", error);
+
+    const refreshStatus = document.getElementById("refreshStatus");
+    const refreshHRStatus = document.getElementById("refreshHRStatus");
+
+    if(refreshStatus) refreshStatus.textContent = "❌ No se pudo actualizar.";
+    if(refreshHRStatus) refreshHRStatus.textContent = "❌ No se pudo actualizar.";
+
+    return false;
+  });
+}
 
 
-
-
+function manualRefreshBoard(){
+  return refreshAllBoards();
+}
 
 
 function normalizeKey(value){
@@ -1349,68 +1335,6 @@ function logAnswer(q,ok){
   postToSheet({type:"respuesta",category:q.category,rule:q.rule,severity:q.severity,correct:!!ok});
 }
 function renderTopThree(){let s=getScores().slice(0,3);document.getElementById("homeTopThree").innerHTML=s.length?s.map((x,i)=>`<div class="top-three-item"><span>${i+1}. ${x.name}</span><span>${x.score}/${x.max} · ${x.time}</span></div>`).join(""):`<div class="top-three-item"><span>${t("noTop")}</span><span>🤠</span></div>`}
-
-function getRemoteRowsByType(type){
-  if(!remoteData) return [];
-
-  if(type === "individual"){
-    return Array.isArray(remoteData.individualRows) ? remoteData.individualRows :
-      Array.isArray(remoteData.individual) ? remoteData.individual : [];
-  }
-
-  if(type === "torneo"){
-    return Array.isArray(remoteData.teamRows) ? remoteData.teamRows :
-      Array.isArray(remoteData.torneoRows) ? remoteData.torneoRows :
-      Array.isArray(remoteData.torneo) ? remoteData.torneo : [];
-  }
-
-  if(type === "respuestas"){
-    return Array.isArray(remoteData.respuestaRows) ? remoteData.respuestaRows :
-      Array.isArray(remoteData.respuestasRows) ? remoteData.respuestasRows :
-      Array.isArray(remoteData.respuestas) ? remoteData.respuestas : [];
-  }
-
-  return [];
-}
-
-async function refreshAllBoards(){
-  const refreshStatus = document.getElementById("refreshStatus");
-  const refreshHRStatus = document.getElementById("refreshHRStatus");
-  const refreshBoardBtn = document.getElementById("refreshBoardBtn");
-
-  if(refreshBoardBtn) refreshBoardBtn.disabled = true;
-
-  if(refreshStatus) refreshStatus.textContent = "⏳ Actualizando todos los tableros...";
-  if(refreshHRStatus) refreshHRStatus.textContent = "⏳ Actualizando todos los tableros...";
-
-  try{
-    await loadRemoteData(true);
-
-    renderHomeTopThree();
-    renderLeaderboard();
-    renderTeamLeaderboard();
-    renderHRBoard();
-    if(typeof syncCombinedHRCharts === "function") syncCombinedHRCharts();
-
-    const now = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
-    const msg = "✅ 4 tableros actualizados · " + now;
-
-    if(refreshStatus) refreshStatus.textContent = msg;
-    if(refreshHRStatus) refreshHRStatus.textContent = msg;
-
-  }catch(error){
-    console.error("refreshAllBoards error:", error);
-    if(refreshStatus) refreshStatus.textContent = "❌ No se pudieron actualizar todos los tableros.";
-    if(refreshHRStatus) refreshHRStatus.textContent = "❌ No se pudieron actualizar todos los tableros.";
-  }finally{
-    if(refreshBoardBtn) refreshBoardBtn.disabled = false;
-  }
-}
-
-function manualRefreshBoard(){
-  return refreshAllBoards();
-}
-
 function renderLeaderboard(){
   let s = getScores();
 
@@ -1452,59 +1376,6 @@ function selectCommitment(c){selectedCommitment=c;finishGame()}
 function bonus(s){return s<=30?2:s<=60?1:0}function badge(percent,total,crit){if(crit>0)return"⚠️ "+(currentLang==="es"?"Riesgo Crítico – No Aprobado":"Critical Risk – Not Approved");if(percent>=90&&total>=6)return"🤠 "+(currentLang==="es"?"Sheriff de Seguridad":"Safety Sheriff");if(percent>=75)return"🐎 "+t("cowboyStrong");return"🪶 "+(currentLang==="es"?"Aprendiz del Oeste":"Old West Apprentice")}
 function finishGame(){let raw=score,max=questionCount,percent=Math.round(raw/max*100),time=formatTime(elapsedSeconds),b=bonus(elapsedSeconds),rank=badge(percent,raw+b,criticalErrors),msg=percent>=90?t("sheriffExpert"):percent>=75?t("cowboyStrong"):t("tryAgain");document.getElementById("finalMessage").textContent=msg;document.getElementById("finalBadge").textContent=rank;document.getElementById("finalLead").textContent=`${participantName}, ${raw}/${max}`;document.getElementById("finalPercent").textContent=percent+"%";document.getElementById("finalScenario").textContent=`${raw}/${max}`;document.getElementById("finalTime").textContent=time;document.getElementById("finalCommitment").innerHTML=`<strong>${t("commitmentChosen")}</strong><br>${selectedCommitment}${criticalErrors>0?`<div class="critical-warning">⚠️ ${criticalErrors} ${t("criticalWarn")}</div>`:""}`;document.getElementById("finalBonus").innerHTML=`<div class="bonus-detail"><div>${t("baseScore")}<br><strong>${raw}/${max}</strong></div><div>${t("bonus")}<br><strong>+${b}</strong></div><div>${t("rankGranted")}<br><strong>${rank}</strong></div></div>`;saveScore({name:participantName,score:raw,max,percent,seconds:elapsedSeconds,time,badge:rank,criticalErrors,commitment:selectedCommitment,date:new Date().toLocaleString("es-MX")});showScreen("final");renderTopThree()}
 applyLanguage();
-
-/* =========================
-   Safety patch: restore home labels and Top 3 refresh without Top 3 button
-========================= */
-(function(){
-  const originalApplyLanguage = typeof applyLanguage === "function" ? applyLanguage : null;
-  if(originalApplyLanguage && !window.__applyLanguagePatched){
-    window.__applyLanguagePatched = true;
-    window.applyLanguage = function(){
-      originalApplyLanguage();
-      const btnEs = document.getElementById("btnLangEs");
-      const btnEn = document.getElementById("btnLangEn");
-      if(btnEs) btnEs.textContent = "Español";
-      if(btnEn) btnEn.textContent = "English";
-      if(typeof renderMobileMenu === "function") renderMobileMenu();
-    };
-  }
-
-  window.refreshAllBoards = async function(){
-    const refreshStatus = document.getElementById("refreshStatus");
-    const refreshHRStatus = document.getElementById("refreshHRStatus");
-    const refreshBoardBtn = document.getElementById("refreshBoardBtn");
-
-    if(refreshBoardBtn) refreshBoardBtn.disabled = true;
-    if(refreshStatus) refreshStatus.textContent = "⏳ Actualizando todos los tableros...";
-    if(refreshHRStatus) refreshHRStatus.textContent = "⏳ Actualizando todos los tableros...";
-
-    try{
-      if(typeof loadRemoteData === "function"){
-        await loadRemoteData(true);
-      }
-      if(typeof renderHomeTopThree === "function") renderHomeTopThree();
-      if(typeof renderLeaderboard === "function") renderLeaderboard();
-      if(typeof renderTeamLeaderboard === "function") renderTeamLeaderboard();
-      if(typeof renderHRBoard === "function") renderHRBoard();
-      if(typeof syncCombinedHRCharts === "function") syncCombinedHRCharts();
-
-      const now = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
-      const msg = "✅ Tableros actualizados · " + now;
-      if(refreshStatus) refreshStatus.textContent = msg;
-      if(refreshHRStatus) refreshHRStatus.textContent = msg;
-    }catch(error){
-      console.error("refreshAllBoards error:", error);
-      if(refreshStatus) refreshStatus.textContent = "❌ No se pudo actualizar.";
-      if(refreshHRStatus) refreshHRStatus.textContent = "❌ No se pudo actualizar.";
-    }finally{
-      if(refreshBoardBtn) refreshBoardBtn.disabled = false;
-    }
-  };
-
-  window.manualRefreshBoard = window.refreshAllBoards;
-})();
-
 </script>
 
 <footer class="site-footer">
