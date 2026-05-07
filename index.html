@@ -132,6 +132,228 @@ button{cursor:pointer;font-weight:900;border-radius:999px;padding:12px 18px;font
 
 @media(max-width:900px){.hero,.options,.grid,.stats,.bonus-detail,.tournament-panel,.tournament-score{grid-template-columns:1fr}.nav{justify-content:center}.brand{text-align:center}.visual{aspect-ratio:4/3}.leaderboard{min-width:850px}}
 @media(max-width:480px){.container{padding:22px 12px 42px}button{width:100%}h1{font-size:40px}.visual{aspect-ratio:1/1}.visual-tag{left:12px;right:12px;text-align:center}.visual-label{left:12px;right:12px}}
+
+/* =========================
+   Responsive Web Design Upgrade
+========================= */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.table-wrap,
+.table-container,
+.board-stack,
+.card-content {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  min-width: 760px;
+}
+
+@media (max-width: 900px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  header,
+  .topbar {
+    position: relative !important;
+  }
+
+  .wrap,
+  .container,
+  main {
+    width: 100% !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .brand,
+  .brand-row {
+    display: grid !important;
+    grid-template-columns: auto 1fr !important;
+    gap: 10px !important;
+    align-items: center !important;
+  }
+
+  .brand h1,
+  .brand-title {
+    font-size: 20px !important;
+    line-height: 1.05 !important;
+    text-align: left !important;
+  }
+
+  .brand p,
+  .brand-subtitle {
+    font-size: 12px !important;
+    line-height: 1.15 !important;
+    text-align: left !important;
+  }
+
+  nav,
+  #navButtons {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-top: 10px !important;
+  }
+
+  nav button,
+  #navButtons button,
+  .btn-primary,
+  .btn-secondary {
+    width: 100% !important;
+    min-height: 48px !important;
+    font-size: 15px !important;
+    padding: 12px 14px !important;
+    white-space: normal !important;
+  }
+
+  .hero,
+  .grid,
+  .stats,
+  .stats-grid,
+  .home-grid,
+  .rule-grid,
+  .contribute-grid,
+  .saloon-actions,
+  .name-box {
+    grid-template-columns: 1fr !important;
+  }
+
+  .card,
+  .panel,
+  .section-card,
+  .modal {
+    border-radius: 20px !important;
+  }
+
+  .card,
+  .panel,
+  .section-card {
+    padding: 14px !important;
+  }
+
+  h1 {
+    font-size: 32px !important;
+    line-height: 1.05 !important;
+  }
+
+  h2 {
+    font-size: 26px !important;
+    line-height: 1.1 !important;
+  }
+
+  h3 {
+    font-size: 19px !important;
+  }
+
+  .lead,
+  .subtitle,
+  p {
+    font-size: 15px !important;
+    line-height: 1.45 !important;
+  }
+
+  .modal {
+    width: min(94vw, 560px) !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    padding: 18px !important;
+  }
+
+  .modal input,
+  .modal select,
+  .modal textarea,
+  input {
+    font-size: 16px !important;
+  }
+
+  .recognition-form {
+    gap: 12px !important;
+  }
+
+  .recognition-form input {
+    min-height: 52px !important;
+  }
+
+  .site-footer {
+    font-size: 13px !important;
+    padding: 18px 10px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .wrap,
+  .container,
+  main {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  header {
+    padding: 10px !important;
+  }
+
+  .brand h1,
+  .brand-title {
+    font-size: 18px !important;
+  }
+
+  .brand p,
+  .brand-subtitle {
+    font-size: 11px !important;
+  }
+
+  .badge {
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+  }
+
+  h1 {
+    font-size: 28px !important;
+  }
+
+  h2 {
+    font-size: 23px !important;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  #navButtons button {
+    border-radius: 18px !important;
+    min-height: 46px !important;
+    padding: 12px !important;
+  }
+
+  .stat-card,
+  .detail-item {
+    padding: 12px !important;
+  }
+
+  table {
+    min-width: 720px;
+    font-size: 13px !important;
+  }
+
+  .modal {
+    width: 94vw !important;
+    padding: 16px !important;
+  }
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -302,9 +524,13 @@ function postToSheet(payload){
   return fetch(API_URL, {
     method: "POST",
     mode: "no-cors",
+    keepalive: true,
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload)
-  }).catch(err => console.warn("Sheet post failed", err));
+  }).catch(err => {
+    console.warn("Sheet post failed", err);
+    throw err;
+  });
 }
 
 function fetchSheet(type){
@@ -659,6 +885,10 @@ function sendRecognitionByEmail(name, email){
     filename: `Reconocimiento_Reglas_Cardinales_${String(name).trim().replace(/[^\w\sáéíóúÁÉÍÓÚñÑ-]/g,"").replace(/\s+/g,"_")}.pdf`
   });
 }
+function isMobileDevice(){
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
+
 async function generateRecognitionAndEmail(){
   const nameInput=document.getElementById("recognitionNameInput");
   const emailInput=document.getElementById("recognitionEmailInput");
@@ -677,23 +907,39 @@ async function generateRecognitionAndEmail(){
 
   if(err) err.style.display="none";
   if(status){
-    status.textContent=t("recognitionSending");
+    status.textContent=t("recognitionSending") || "Enviando solicitud...";
     status.style.display="block";
   }
-  if(btn) btn.disabled = true;
+  if(btn) btn.disabled=true;
 
-  const doc = createRecognitionPDF(name);
-  if(doc){
-    downloadRecognitionPDF(doc, name);
+  try{
+    // Primero se envía la solicitud al Apps Script.
+    // Esto es más estable en celular que descargar primero.
+    await sendRecognitionByEmail(name, email);
+
+    if(status){
+      status.textContent=t("recognitionReady") || "Solicitud enviada. El correo puede tardar unos segundos en llegar.";
+      status.style.display="block";
+    }
+
+    // En desktop se descarga respaldo local.
+    // En móvil se evita la descarga automática para no interrumpir el POST.
+    if(!isMobileDevice()){
+      const doc=createRecognitionPDF(name);
+      if(doc){
+        downloadRecognitionPDF(doc, name);
+      }
+    }
+
+  }catch(error){
+    console.error("Recognition send error:", error);
+    if(status){
+      status.textContent="No se pudo enviar la solicitud. Revisa conexión o intenta de nuevo.";
+      status.style.display="block";
+    }
+  }finally{
+    if(btn) btn.disabled=false;
   }
-
-  await sendRecognitionByEmail(name, email);
-
-  if(status){
-    status.textContent=t("recognitionReady");
-    status.style.display="block";
-  }
-  if(btn) btn.disabled = false;
 }
 
 function openPlayModal(){
